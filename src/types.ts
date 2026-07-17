@@ -3,6 +3,9 @@ export interface OptionItem {
   name: string
   description: string
   price: number
+  date?: string
+  checkInDate?: string
+  checkOutDate?: string
   route?: string
   nights?: number
   pricePerNight?: number

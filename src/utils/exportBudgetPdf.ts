@@ -2,7 +2,7 @@ import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import type { OptionCategory, OptionItem } from '../types'
 import { formatCurrency } from './format'
-import { getHotelTotal, getOptionMeta } from './optionDisplay'
+import { getHotelTotal, getOptionDateLabel, getOptionDetails } from './optionDisplay'
 
 interface BudgetExportData {
   tripName: string
@@ -49,13 +49,14 @@ function addCategorySection(
 
   autoTable(doc, {
     startY: y + 3,
-    head: [['Item', 'Details', 'Cost']],
+    head: [['Item', 'Date', 'Details', 'Cost']],
     body: items.map((item) => [
       item.name,
-      getOptionMeta(category, item) || '—',
+      getOptionDateLabel(category, item) || '—',
+      getOptionDetails(category, item) || '—',
       itemAmount(category, item),
     ]),
-    foot: [['', 'Subtotal', formatCurrency(subtotal)]],
+    foot: [['', '', 'Subtotal', formatCurrency(subtotal)]],
     theme: 'striped',
     headStyles: { fillColor: [26, 58, 74] },
     footStyles: { fillColor: [247, 244, 239], textColor: [42, 111, 122], fontStyle: 'bold' },

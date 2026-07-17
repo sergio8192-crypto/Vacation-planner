@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import type { OptionCategory, OptionItem } from '../types'
 import { formatCurrency } from '../utils/format'
+import { nightsBetween } from '../utils/dates'
 import { getOptionMeta, getOptionPriceLabel } from '../utils/optionDisplay'
 
 type AddPayload = Omit<OptionItem, 'id'>
@@ -132,6 +133,7 @@ function FlightForm({
 }) {
   const [name, setName] = useState('')
   const [route, setRoute] = useState('')
+  const [date, setDate] = useState('')
   const [price, setPrice] = useState('')
 
   function handleSubmit(e: FormEvent) {
@@ -141,11 +143,13 @@ function FlightForm({
     onAdd({
       name: name.trim(),
       route: route.trim(),
+      date: date || undefined,
       description: route.trim(),
       price: parsed,
     })
     setName('')
     setRoute('')
+    setDate('')
     setPrice('')
   }
 
@@ -169,6 +173,15 @@ function FlightForm({
             value={route}
             onChange={(e) => setRoute(e.target.value)}
             placeholder="e.g. LAX → BCN"
+          />
+        </div>
+        <div className="form-field">
+          <label htmlFor="flight-date">Departure date</label>
+          <input
+            id="flight-date"
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
           />
         </div>
         <div className="form-field">
@@ -200,8 +213,26 @@ function HotelForm({
   onAdd: (item: AddPayload) => void
 }) {
   const [name, setName] = useState('')
+  const [checkInDate, setCheckInDate] = useState('')
+  const [checkOutDate, setCheckOutDate] = useState('')
   const [nights, setNights] = useState('3')
   const [pricePerNight, setPricePerNight] = useState('')
+
+  function handleCheckInChange(value: string) {
+    setCheckInDate(value)
+    if (value && checkOutDate) {
+      const computed = nightsBetween(value, checkOutDate)
+      if (computed) setNights(String(computed))
+    }
+  }
+
+  function handleCheckOutChange(value: string) {
+    setCheckOutDate(value)
+    if (checkInDate && value) {
+      const computed = nightsBetween(checkInDate, value)
+      if (computed) setNights(String(computed))
+    }
+  }
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -210,12 +241,16 @@ function HotelForm({
     if (!name.trim() || isNaN(nightsNum) || nightsNum < 1 || isNaN(perNight) || perNight < 0) return
     onAdd({
       name: name.trim(),
+      checkInDate: checkInDate || undefined,
+      checkOutDate: checkOutDate || undefined,
       nights: nightsNum,
       pricePerNight: perNight,
       price: nightsNum * perNight,
       description: `${nightsNum} night${nightsNum === 1 ? '' : 's'} · ${formatCurrency(perNight)}/night`,
     })
     setName('')
+    setCheckInDate('')
+    setCheckOutDate('')
     setNights('3')
     setPricePerNight('')
   }
@@ -231,6 +266,25 @@ function HotelForm({
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Hotel Arts Barcelona"
             required
+          />
+        </div>
+        <div className="form-field">
+          <label htmlFor="hotel-check-in">Check-in</label>
+          <input
+            id="hotel-check-in"
+            type="date"
+            value={checkInDate}
+            onChange={(e) => handleCheckInChange(e.target.value)}
+          />
+        </div>
+        <div className="form-field">
+          <label htmlFor="hotel-check-out">Check-out</label>
+          <input
+            id="hotel-check-out"
+            type="date"
+            value={checkOutDate}
+            min={checkInDate || undefined}
+            onChange={(e) => handleCheckOutChange(e.target.value)}
           />
         </div>
         <div className="form-field">
@@ -275,6 +329,7 @@ function TransitForm({
   const [name, setName] = useState('')
   const [mode, setMode] = useState('Train')
   const [route, setRoute] = useState('')
+  const [date, setDate] = useState('')
   const [price, setPrice] = useState('')
 
   function handleSubmit(e: FormEvent) {
@@ -286,12 +341,14 @@ function TransitForm({
       name: name.trim(),
       mode,
       route: routeText,
+      date: date || undefined,
       description: [mode, routeText].filter(Boolean).join(' · '),
       price: parsed,
     })
     setName('')
     setMode('Train')
     setRoute('')
+    setDate('')
     setPrice('')
   }
 
@@ -325,6 +382,15 @@ function TransitForm({
           />
         </div>
         <div className="form-field">
+          <label htmlFor="transit-date">Travel date</label>
+          <input
+            id="transit-date"
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+          />
+        </div>
+        <div className="form-field">
           <label htmlFor="transit-price">Price ($)</label>
           <input
             id="transit-price"
@@ -354,6 +420,7 @@ function ActivityForm({
 }) {
   const [name, setName] = useState('')
   const [notes, setNotes] = useState('')
+  const [date, setDate] = useState('')
   const [price, setPrice] = useState('')
 
   function handleSubmit(e: FormEvent) {
@@ -363,11 +430,13 @@ function ActivityForm({
     onAdd({
       name: name.trim(),
       notes: notes.trim(),
+      date: date || undefined,
       description: notes.trim(),
       price: parsed,
     })
     setName('')
     setNotes('')
+    setDate('')
     setPrice('')
   }
 
@@ -391,6 +460,15 @@ function ActivityForm({
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Optional details"
+          />
+        </div>
+        <div className="form-field">
+          <label htmlFor="activity-date">Date</label>
+          <input
+            id="activity-date"
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
           />
         </div>
         <div className="form-field">

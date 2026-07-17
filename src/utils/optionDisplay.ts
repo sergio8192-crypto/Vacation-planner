@@ -1,4 +1,5 @@
 import type { OptionCategory, OptionItem } from '../types'
+import { formatDisplayDate, formatDateRange, joinMetaParts } from './dates'
 import { formatCurrency } from './format'
 
 export function getHotelTotal(item: OptionItem): number {
@@ -8,7 +9,18 @@ export function getHotelTotal(item: OptionItem): number {
   return item.price
 }
 
-export function getOptionMeta(category: OptionCategory, item: OptionItem): string {
+export function getOptionDateLabel(category: OptionCategory, item: OptionItem): string {
+  switch (category) {
+    case 'hotels':
+      return formatDateRange(item.checkInDate, item.checkOutDate)
+    case 'flights':
+    case 'groundTransport':
+    case 'activities':
+      return item.date ? formatDisplayDate(item.date) : ''
+  }
+}
+
+export function getOptionDetails(category: OptionCategory, item: OptionItem): string {
   switch (category) {
     case 'flights':
       return item.route ?? item.description
@@ -24,6 +36,10 @@ export function getOptionMeta(category: OptionCategory, item: OptionItem): strin
     case 'activities':
       return item.notes ?? item.description
   }
+}
+
+export function getOptionMeta(category: OptionCategory, item: OptionItem): string {
+  return joinMetaParts(getOptionDateLabel(category, item), getOptionDetails(category, item))
 }
 
 export function getOptionPriceLabel(category: OptionCategory, item: OptionItem): string {

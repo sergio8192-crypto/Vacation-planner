@@ -25,6 +25,12 @@ export function migratePlan(raw: Record<string, unknown>): VacationPlan {
   if (!Array.isArray(plan.selectedGroundTransportIds)) {
     plan.selectedGroundTransportIds = []
   }
+  if (!Array.isArray(plan.cruises)) {
+    plan.cruises = []
+  }
+  if (!Array.isArray(plan.selectedCruiseIds)) {
+    plan.selectedCruiseIds = []
+  }
 
   return plan
 }

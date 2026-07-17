@@ -121,6 +121,8 @@ function CategoryForm({
       return <TransitForm addButtonLabel={addButtonLabel} onAdd={onAdd} />
     case 'activities':
       return <ActivityForm addButtonLabel={addButtonLabel} onAdd={onAdd} />
+    case 'cruises':
+      return <CruiseForm addButtonLabel={addButtonLabel} onAdd={onAdd} />
   }
 }
 
@@ -475,6 +477,101 @@ function ActivityForm({
           <label htmlFor="activity-price">Price ($)</label>
           <input
             id="activity-price"
+            type="number"
+            min="0"
+            step="0.01"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            placeholder="0.00"
+            required
+          />
+        </div>
+      </div>
+      <button type="submit" className="btn btn-add">
+        {addButtonLabel}
+      </button>
+    </form>
+  )
+}
+
+function CruiseForm({
+  addButtonLabel,
+  onAdd,
+}: {
+  addButtonLabel: string
+  onAdd: (item: AddPayload) => void
+}) {
+  const [cruiseLine, setCruiseLine] = useState('')
+  const [destination, setDestination] = useState('')
+  const [sailDate, setSailDate] = useState('')
+  const [duration, setDuration] = useState('')
+  const [price, setPrice] = useState('')
+
+  function handleSubmit(e: FormEvent) {
+    e.preventDefault()
+    const parsed = parseFloat(price)
+    if (!cruiseLine.trim() || !destination.trim() || isNaN(parsed) || parsed < 0) return
+    onAdd({
+      name: cruiseLine.trim(),
+      cruiseLine: cruiseLine.trim(),
+      destination: destination.trim(),
+      date: sailDate || undefined,
+      duration: duration.trim() || undefined,
+      description: [destination.trim(), duration.trim()].filter(Boolean).join(' · '),
+      price: parsed,
+    })
+    setCruiseLine('')
+    setDestination('')
+    setSailDate('')
+    setDuration('')
+    setPrice('')
+  }
+
+  return (
+    <form className="add-form" onSubmit={handleSubmit} autoComplete="off">
+      <div className="form-grid">
+        <div className="form-field">
+          <label htmlFor="cruise-line">Cruise Line</label>
+          <input
+            id="cruise-line"
+            value={cruiseLine}
+            onChange={(e) => setCruiseLine(e.target.value)}
+            placeholder="e.g. Royal Caribbean"
+            required
+          />
+        </div>
+        <div className="form-field">
+          <label htmlFor="cruise-destination">Destination</label>
+          <input
+            id="cruise-destination"
+            value={destination}
+            onChange={(e) => setDestination(e.target.value)}
+            placeholder="e.g. Caribbean"
+            required
+          />
+        </div>
+        <div className="form-field">
+          <label htmlFor="cruise-sail-date">Sail Date</label>
+          <input
+            id="cruise-sail-date"
+            type="date"
+            value={sailDate}
+            onChange={(e) => setSailDate(e.target.value)}
+          />
+        </div>
+        <div className="form-field">
+          <label htmlFor="cruise-duration">Duration</label>
+          <input
+            id="cruise-duration"
+            value={duration}
+            onChange={(e) => setDuration(e.target.value)}
+            placeholder="e.g. 7 nights"
+          />
+        </div>
+        <div className="form-field">
+          <label htmlFor="cruise-price">Price ($)</label>
+          <input
+            id="cruise-price"
             type="number"
             min="0"
             step="0.01"

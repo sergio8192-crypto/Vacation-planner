@@ -24,10 +24,12 @@ export function PlannerPage() {
     selectedHotels,
     selectedGroundTransport,
     selectedActivities,
+    selectedCruises,
     flightCost,
     hotelCost,
     groundTransportCost,
     activitiesCost,
+    cruiseCost,
     totalCost,
   } = useVacationPlan()
 
@@ -119,6 +121,20 @@ export function PlannerPage() {
             />
 
             <CategorySection
+              category="cruises"
+              title="Cruises"
+              icon="🚢"
+              description="Add cruise options — select as many as you like"
+              items={plan.cruises}
+              selectedIds={plan.selectedCruiseIds}
+              emptyMessage="No cruises yet. Add your first option above."
+              addButtonLabel="Add cruise"
+              onAdd={(item) => addOption('cruises', item)}
+              onRemove={(id) => removeOption('cruises', id)}
+              onToggle={(id) => toggleSelection('cruises', id)}
+            />
+
+            <CategorySection
               category="groundTransport"
               title="Trains & Buses"
               icon="🚆"
@@ -145,6 +161,7 @@ export function PlannerPage() {
               onRemove={(id) => removeOption('activities', id)}
               onToggle={(id) => toggleSelection('activities', id)}
             />
+
           </main>
 
           <CostSummary
@@ -153,10 +170,12 @@ export function PlannerPage() {
             selectedHotels={selectedHotels}
             selectedGroundTransport={selectedGroundTransport}
             selectedActivities={selectedActivities}
+            selectedCruises={selectedCruises}
             flightCost={flightCost}
             hotelCost={hotelCost}
             groundTransportCost={groundTransportCost}
             activitiesCost={activitiesCost}
+            cruiseCost={cruiseCost}
             totalCost={totalCost}
             onReset={() => {
               if (confirm('Clear all options and selections for this vacation?')) {

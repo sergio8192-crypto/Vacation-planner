@@ -7,10 +7,12 @@ interface CostSummaryProps {
   selectedHotels: OptionItem[]
   selectedGroundTransport: OptionItem[]
   selectedActivities: OptionItem[]
+  selectedCruises: OptionItem[]
   flightCost: number
   hotelCost: number
   groundTransportCost: number
   activitiesCost: number
+  cruiseCost: number
   totalCost: number
   onReset: () => void
 }
@@ -21,10 +23,12 @@ export function CostSummary({
   selectedHotels,
   selectedGroundTransport,
   selectedActivities,
+  selectedCruises,
   flightCost,
   hotelCost,
   groundTransportCost,
   activitiesCost,
+  cruiseCost,
   totalCost,
   onReset,
 }: CostSummaryProps) {
@@ -32,7 +36,8 @@ export function CostSummary({
     selectedFlights.length > 0 ||
     selectedHotels.length > 0 ||
     selectedGroundTransport.length > 0 ||
-    selectedActivities.length > 0
+    selectedActivities.length > 0 ||
+    selectedCruises.length > 0
 
   async function handleExportPdf() {
     if (!hasSelections) return
@@ -43,10 +48,12 @@ export function CostSummary({
       selectedHotels,
       selectedGroundTransport,
       selectedActivities,
+      selectedCruises,
       flightCost,
       hotelCost,
       groundTransportCost,
       activitiesCost,
+      cruiseCost,
       totalCost,
     })
   }
@@ -59,6 +66,10 @@ export function CostSummary({
     selectedHotels.length > 0 && {
       label: 'Hotels',
       names: selectedHotels.map((h) => h.name).join(', '),
+    },
+    selectedCruises.length > 0 && {
+      label: 'Cruises',
+      names: selectedCruises.map((c) => c.name).join(', '),
     },
     selectedGroundTransport.length > 0 && {
       label: 'Transport',
@@ -90,6 +101,12 @@ export function CostSummary({
             </span>
           </div>
           <div className="summary-line">
+            <span className="summary-label">Cruises</span>
+            <span className="summary-value">
+              {selectedCruises.length > 0 ? formatCurrency(cruiseCost) : '—'}
+            </span>
+          </div>
+          <div className="summary-line">
             <span className="summary-label">Trains & Buses</span>
             <span className="summary-value">
               {selectedGroundTransport.length > 0 ? formatCurrency(groundTransportCost) : '—'}
@@ -117,7 +134,7 @@ export function CostSummary({
             ))
           ) : (
             <p className="summary-hint">
-              Select flights, hotels, transport, and activities to build your trip total.
+              Select flights, hotels, transport, activities, and cruises to build your trip total.
             </p>
           )}
         </div>

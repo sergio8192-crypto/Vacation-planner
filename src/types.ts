@@ -11,6 +11,9 @@ export interface OptionItem {
   pricePerNight?: number
   mode?: string
   notes?: string
+  cruiseLine?: string
+  destination?: string
+  duration?: string
 }
 
 export interface VacationPlan {
@@ -19,10 +22,12 @@ export interface VacationPlan {
   hotels: OptionItem[]
   groundTransport: OptionItem[]
   activities: OptionItem[]
+  cruises: OptionItem[]
   selectedFlightIds: string[]
   selectedHotelIds: string[]
   selectedGroundTransportIds: string[]
   selectedActivityIds: string[]
+  selectedCruiseIds: string[]
 }
 
 export interface SavedVacation {
@@ -36,7 +41,7 @@ export interface VacationStore {
   vacations: SavedVacation[]
 }
 
-export type OptionCategory = 'flights' | 'hotels' | 'groundTransport' | 'activities'
+export type OptionCategory = 'flights' | 'hotels' | 'groundTransport' | 'activities' | 'cruises'
 
 export const EMPTY_PLAN: VacationPlan = {
   tripName: 'My Vacation',
@@ -44,8 +49,10 @@ export const EMPTY_PLAN: VacationPlan = {
   hotels: [],
   groundTransport: [],
   activities: [],
+  cruises: [],
   selectedFlightIds: [],
   selectedHotelIds: [],
   selectedGroundTransportIds: [],
   selectedActivityIds: [],
+  selectedCruiseIds: [],
 }

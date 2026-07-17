@@ -15,6 +15,7 @@ const SELECTION_KEYS: Record<OptionCategory, keyof VacationPlan> = {
   hotels: 'selectedHotelIds',
   groundTransport: 'selectedGroundTransportIds',
   activities: 'selectedActivityIds',
+  cruises: 'selectedCruiseIds',
 }
 
 function createId() {
@@ -191,12 +192,14 @@ export function useVacationPlan() {
   const selectedActivities = plan.activities.filter((a) =>
     plan.selectedActivityIds.includes(a.id),
   )
+  const selectedCruises = plan.cruises.filter((c) => plan.selectedCruiseIds.includes(c.id))
 
   const flightCost = selectedFlights.reduce((sum, f) => sum + f.price, 0)
   const hotelCost = selectedHotels.reduce((sum, h) => sum + getHotelTotal(h), 0)
   const groundTransportCost = selectedGroundTransport.reduce((sum, t) => sum + t.price, 0)
   const activitiesCost = selectedActivities.reduce((sum, a) => sum + a.price, 0)
-  const totalCost = flightCost + hotelCost + groundTransportCost + activitiesCost
+  const cruiseCost = selectedCruises.reduce((sum, c) => sum + c.price, 0)
+  const totalCost = flightCost + hotelCost + groundTransportCost + activitiesCost + cruiseCost
 
   return {
     plan,
@@ -216,10 +219,12 @@ export function useVacationPlan() {
     selectedHotels,
     selectedGroundTransport,
     selectedActivities,
+    selectedCruises,
     flightCost,
     hotelCost,
     groundTransportCost,
     activitiesCost,
+    cruiseCost,
     totalCost,
   }
 }

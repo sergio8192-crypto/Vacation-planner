@@ -16,6 +16,7 @@ export function getOptionDateLabel(category: OptionCategory, item: OptionItem): 
     case 'flights':
     case 'groundTransport':
     case 'activities':
+    case 'cruises':
       return item.date ? formatDisplayDate(item.date) : ''
   }
 }
@@ -35,6 +36,13 @@ export function getOptionDetails(category: OptionCategory, item: OptionItem): st
     }
     case 'activities':
       return item.notes ?? item.description
+    case 'cruises': {
+      const parts = [
+        item.destination,
+        item.duration ? `Duration: ${item.duration}` : '',
+      ].filter(Boolean)
+      return parts.join(' · ')
+    }
   }
 }
 

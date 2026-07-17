@@ -5,11 +5,13 @@ interface CostSummaryProps {
   tripName: string
   selectedFlights: OptionItem[]
   selectedHotels: OptionItem[]
+  selectedCarRentals: OptionItem[]
   selectedGroundTransport: OptionItem[]
   selectedActivities: OptionItem[]
   selectedCruises: OptionItem[]
   flightCost: number
   hotelCost: number
+  carRentalCost: number
   groundTransportCost: number
   activitiesCost: number
   cruiseCost: number
@@ -21,11 +23,13 @@ export function CostSummary({
   tripName,
   selectedFlights,
   selectedHotels,
+  selectedCarRentals,
   selectedGroundTransport,
   selectedActivities,
   selectedCruises,
   flightCost,
   hotelCost,
+  carRentalCost,
   groundTransportCost,
   activitiesCost,
   cruiseCost,
@@ -35,6 +39,7 @@ export function CostSummary({
   const hasSelections =
     selectedFlights.length > 0 ||
     selectedHotels.length > 0 ||
+    selectedCarRentals.length > 0 ||
     selectedGroundTransport.length > 0 ||
     selectedActivities.length > 0 ||
     selectedCruises.length > 0
@@ -46,11 +51,13 @@ export function CostSummary({
       tripName,
       selectedFlights,
       selectedHotels,
+      selectedCarRentals,
       selectedGroundTransport,
       selectedActivities,
       selectedCruises,
       flightCost,
       hotelCost,
+      carRentalCost,
       groundTransportCost,
       activitiesCost,
       cruiseCost,
@@ -63,13 +70,17 @@ export function CostSummary({
       label: 'Flights',
       names: selectedFlights.map((f) => f.name).join(', '),
     },
+    selectedCruises.length > 0 && {
+      label: 'Cruises',
+      names: selectedCruises.map((c) => c.name).join(', '),
+    },
     selectedHotels.length > 0 && {
       label: 'Hotels',
       names: selectedHotels.map((h) => h.name).join(', '),
     },
-    selectedCruises.length > 0 && {
-      label: 'Cruises',
-      names: selectedCruises.map((c) => c.name).join(', '),
+    selectedCarRentals.length > 0 && {
+      label: 'Car Rentals',
+      names: selectedCarRentals.map((c) => c.name).join(', '),
     },
     selectedGroundTransport.length > 0 && {
       label: 'Transport',
@@ -95,15 +106,21 @@ export function CostSummary({
             </span>
           </div>
           <div className="summary-line">
+            <span className="summary-label">Cruises</span>
+            <span className="summary-value">
+              {selectedCruises.length > 0 ? formatCurrency(cruiseCost) : '—'}
+            </span>
+          </div>
+          <div className="summary-line">
             <span className="summary-label">Hotels</span>
             <span className="summary-value">
               {selectedHotels.length > 0 ? formatCurrency(hotelCost) : '—'}
             </span>
           </div>
           <div className="summary-line">
-            <span className="summary-label">Cruises</span>
+            <span className="summary-label">Car Rentals</span>
             <span className="summary-value">
-              {selectedCruises.length > 0 ? formatCurrency(cruiseCost) : '—'}
+              {selectedCarRentals.length > 0 ? formatCurrency(carRentalCost) : '—'}
             </span>
           </div>
           <div className="summary-line">
@@ -134,7 +151,8 @@ export function CostSummary({
             ))
           ) : (
             <p className="summary-hint">
-              Select flights, hotels, transport, activities, and cruises to build your trip total.
+              Select flights, hotels, car rentals, cruises, transport, and activities to build your
+              trip total.
             </p>
           )}
         </div>

@@ -117,6 +117,8 @@ function CategoryForm({
       return <FlightForm addButtonLabel={addButtonLabel} onAdd={onAdd} />
     case 'hotels':
       return <HotelForm addButtonLabel={addButtonLabel} onAdd={onAdd} />
+    case 'carRentals':
+      return <CarRentalForm addButtonLabel={addButtonLabel} onAdd={onAdd} />
     case 'groundTransport':
       return <TransitForm addButtonLabel={addButtonLabel} onAdd={onAdd} />
     case 'activities':
@@ -572,6 +574,101 @@ function CruiseForm({
           <label htmlFor="cruise-price">Price ($)</label>
           <input
             id="cruise-price"
+            type="number"
+            min="0"
+            step="0.01"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            placeholder="0.00"
+            required
+          />
+        </div>
+      </div>
+      <button type="submit" className="btn btn-add">
+        {addButtonLabel}
+      </button>
+    </form>
+  )
+}
+
+function CarRentalForm({
+  addButtonLabel,
+  onAdd,
+}: {
+  addButtonLabel: string
+  onAdd: (item: AddPayload) => void
+}) {
+  const [rentalCompany, setRentalCompany] = useState('')
+  const [city, setCity] = useState('')
+  const [vehicleType, setVehicleType] = useState('')
+  const [duration, setDuration] = useState('')
+  const [price, setPrice] = useState('')
+
+  function handleSubmit(e: FormEvent) {
+    e.preventDefault()
+    const parsed = parseFloat(price)
+    if (!rentalCompany.trim() || !city.trim() || isNaN(parsed) || parsed < 0) return
+    onAdd({
+      name: rentalCompany.trim(),
+      rentalCompany: rentalCompany.trim(),
+      city: city.trim(),
+      vehicleType: vehicleType.trim() || undefined,
+      duration: duration.trim() || undefined,
+      description: [city.trim(), vehicleType.trim(), duration.trim()].filter(Boolean).join(' · '),
+      price: parsed,
+    })
+    setRentalCompany('')
+    setCity('')
+    setVehicleType('')
+    setDuration('')
+    setPrice('')
+  }
+
+  return (
+    <form className="add-form" onSubmit={handleSubmit} autoComplete="off">
+      <div className="form-grid">
+        <div className="form-field">
+          <label htmlFor="car-rental-company">Rental Company</label>
+          <input
+            id="car-rental-company"
+            value={rentalCompany}
+            onChange={(e) => setRentalCompany(e.target.value)}
+            placeholder="e.g. Hertz"
+            required
+          />
+        </div>
+        <div className="form-field">
+          <label htmlFor="car-rental-city">City</label>
+          <input
+            id="car-rental-city"
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            placeholder="e.g. Barcelona"
+            required
+          />
+        </div>
+        <div className="form-field">
+          <label htmlFor="car-rental-vehicle">Vehicle Type</label>
+          <input
+            id="car-rental-vehicle"
+            value={vehicleType}
+            onChange={(e) => setVehicleType(e.target.value)}
+            placeholder="e.g. Compact SUV"
+          />
+        </div>
+        <div className="form-field">
+          <label htmlFor="car-rental-duration">Duration</label>
+          <input
+            id="car-rental-duration"
+            value={duration}
+            onChange={(e) => setDuration(e.target.value)}
+            placeholder="e.g. 5 days"
+          />
+        </div>
+        <div className="form-field">
+          <label htmlFor="car-rental-price">Price ($)</label>
+          <input
+            id="car-rental-price"
             type="number"
             min="0"
             step="0.01"

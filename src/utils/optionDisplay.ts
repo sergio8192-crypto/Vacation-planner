@@ -18,6 +18,8 @@ export function getOptionDateLabel(category: OptionCategory, item: OptionItem): 
     case 'activities':
     case 'cruises':
       return item.date ? formatDisplayDate(item.date) : ''
+    case 'carRentals':
+      return ''
   }
 }
 
@@ -39,6 +41,14 @@ export function getOptionDetails(category: OptionCategory, item: OptionItem): st
     case 'cruises': {
       const parts = [
         item.destination,
+        item.duration ? `Duration: ${item.duration}` : '',
+      ].filter(Boolean)
+      return parts.join(' · ')
+    }
+    case 'carRentals': {
+      const parts = [
+        item.city,
+        item.vehicleType,
         item.duration ? `Duration: ${item.duration}` : '',
       ].filter(Boolean)
       return parts.join(' · ')

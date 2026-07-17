@@ -8,11 +8,13 @@ interface BudgetExportData {
   tripName: string
   selectedFlights: OptionItem[]
   selectedHotels: OptionItem[]
+  selectedCarRentals: OptionItem[]
   selectedGroundTransport: OptionItem[]
   selectedActivities: OptionItem[]
   selectedCruises: OptionItem[]
   flightCost: number
   hotelCost: number
+  carRentalCost: number
   groundTransportCost: number
   activitiesCost: number
   cruiseCost: number
@@ -92,8 +94,16 @@ export function exportBudgetToPdf(data: BudgetExportData): void {
 
   let y = 52
   y = addCategorySection(doc, y, 'Flights', 'flights', data.selectedFlights, data.flightCost)
-  y = addCategorySection(doc, y, 'Hotels', 'hotels', data.selectedHotels, data.hotelCost)
   y = addCategorySection(doc, y, 'Cruises', 'cruises', data.selectedCruises, data.cruiseCost)
+  y = addCategorySection(doc, y, 'Hotels', 'hotels', data.selectedHotels, data.hotelCost)
+  y = addCategorySection(
+    doc,
+    y,
+    'Car Rentals',
+    'carRentals',
+    data.selectedCarRentals,
+    data.carRentalCost,
+  )
   y = addCategorySection(
     doc,
     y,

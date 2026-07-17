@@ -22,11 +22,13 @@ export function PlannerPage() {
     deleteVacation,
     selectedFlights,
     selectedHotels,
+    selectedCarRentals,
     selectedGroundTransport,
     selectedActivities,
     selectedCruises,
     flightCost,
     hotelCost,
+    carRentalCost,
     groundTransportCost,
     activitiesCost,
     cruiseCost,
@@ -107,6 +109,20 @@ export function PlannerPage() {
             />
 
             <CategorySection
+              category="cruises"
+              title="Cruises"
+              icon="🚢"
+              description="Add cruise options — select as many as you like"
+              items={plan.cruises}
+              selectedIds={plan.selectedCruiseIds}
+              emptyMessage="No cruises yet. Add your first option above."
+              addButtonLabel="Add cruise"
+              onAdd={(item) => addOption('cruises', item)}
+              onRemove={(id) => removeOption('cruises', id)}
+              onToggle={(id) => toggleSelection('cruises', id)}
+            />
+
+            <CategorySection
               category="hotels"
               title="Hotels"
               icon="🏨"
@@ -121,17 +137,17 @@ export function PlannerPage() {
             />
 
             <CategorySection
-              category="cruises"
-              title="Cruises"
-              icon="🚢"
-              description="Add cruise options — select as many as you like"
-              items={plan.cruises}
-              selectedIds={plan.selectedCruiseIds}
-              emptyMessage="No cruises yet. Add your first option above."
-              addButtonLabel="Add cruise"
-              onAdd={(item) => addOption('cruises', item)}
-              onRemove={(id) => removeOption('cruises', id)}
-              onToggle={(id) => toggleSelection('cruises', id)}
+              category="carRentals"
+              title="Car Rentals"
+              icon="🚗"
+              description="Add car rental options — select as many as you like"
+              items={plan.carRentals}
+              selectedIds={plan.selectedCarRentalIds}
+              emptyMessage="No car rentals yet. Add your first option above."
+              addButtonLabel="Add car rental"
+              onAdd={(item) => addOption('carRentals', item)}
+              onRemove={(id) => removeOption('carRentals', id)}
+              onToggle={(id) => toggleSelection('carRentals', id)}
             />
 
             <CategorySection
@@ -168,11 +184,13 @@ export function PlannerPage() {
             tripName={plan.tripName}
             selectedFlights={selectedFlights}
             selectedHotels={selectedHotels}
+            selectedCarRentals={selectedCarRentals}
             selectedGroundTransport={selectedGroundTransport}
             selectedActivities={selectedActivities}
             selectedCruises={selectedCruises}
             flightCost={flightCost}
             hotelCost={hotelCost}
+            carRentalCost={carRentalCost}
             groundTransportCost={groundTransportCost}
             activitiesCost={activitiesCost}
             cruiseCost={cruiseCost}

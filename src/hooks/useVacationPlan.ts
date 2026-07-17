@@ -13,6 +13,7 @@ import {
 const SELECTION_KEYS: Record<OptionCategory, keyof VacationPlan> = {
   flights: 'selectedFlightIds',
   hotels: 'selectedHotelIds',
+  carRentals: 'selectedCarRentalIds',
   groundTransport: 'selectedGroundTransportIds',
   activities: 'selectedActivityIds',
   cruises: 'selectedCruiseIds',
@@ -186,6 +187,7 @@ export function useVacationPlan() {
 
   const selectedFlights = plan.flights.filter((f) => plan.selectedFlightIds.includes(f.id))
   const selectedHotels = plan.hotels.filter((h) => plan.selectedHotelIds.includes(h.id))
+  const selectedCarRentals = plan.carRentals.filter((c) => plan.selectedCarRentalIds.includes(c.id))
   const selectedGroundTransport = plan.groundTransport.filter((t) =>
     plan.selectedGroundTransportIds.includes(t.id),
   )
@@ -196,10 +198,12 @@ export function useVacationPlan() {
 
   const flightCost = selectedFlights.reduce((sum, f) => sum + f.price, 0)
   const hotelCost = selectedHotels.reduce((sum, h) => sum + getHotelTotal(h), 0)
+  const carRentalCost = selectedCarRentals.reduce((sum, c) => sum + c.price, 0)
   const groundTransportCost = selectedGroundTransport.reduce((sum, t) => sum + t.price, 0)
   const activitiesCost = selectedActivities.reduce((sum, a) => sum + a.price, 0)
   const cruiseCost = selectedCruises.reduce((sum, c) => sum + c.price, 0)
-  const totalCost = flightCost + hotelCost + groundTransportCost + activitiesCost + cruiseCost
+  const totalCost =
+    flightCost + hotelCost + carRentalCost + groundTransportCost + activitiesCost + cruiseCost
 
   return {
     plan,
@@ -217,11 +221,13 @@ export function useVacationPlan() {
     deleteVacation,
     selectedFlights,
     selectedHotels,
+    selectedCarRentals,
     selectedGroundTransport,
     selectedActivities,
     selectedCruises,
     flightCost,
     hotelCost,
+    carRentalCost,
     groundTransportCost,
     activitiesCost,
     cruiseCost,

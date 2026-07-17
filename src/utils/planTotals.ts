@@ -20,6 +20,7 @@ export function computePlanTotal(plan: VacationPlan): number {
   return (
     sumSelected(plan.flights, plan.selectedFlightIds, 'flights') +
     sumSelected(plan.hotels, plan.selectedHotelIds, 'hotels') +
+    sumSelected(plan.carRentals, plan.selectedCarRentalIds, 'carRentals') +
     sumSelected(plan.groundTransport, plan.selectedGroundTransportIds, 'groundTransport') +
     sumSelected(plan.activities, plan.selectedActivityIds, 'activities') +
     sumSelected(plan.cruises, plan.selectedCruiseIds, 'cruises')
@@ -30,6 +31,7 @@ export function countPlanOptions(plan: VacationPlan): number {
   return (
     plan.flights.length +
     plan.hotels.length +
+    plan.carRentals.length +
     plan.groundTransport.length +
     plan.activities.length +
     plan.cruises.length

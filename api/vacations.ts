@@ -1,4 +1,4 @@
-import { handleVacations } from '../lib/handlers'
-import { withHandler } from '../lib/withHandler'
+import { handleVacations } from './lib/handlers.js'
+import { withHandler } from './lib/withHandler.js'
 
 export default withHandler(handleVacations)

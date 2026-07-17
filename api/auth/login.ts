@@ -1,4 +1,4 @@
-import { handleLogin } from '../../lib/handlers'
-import { withHandler } from '../../lib/withHandler'
+import { handleLogin } from '../lib/handlers.js'
+import { withHandler } from '../lib/withHandler.js'
 
 export default withHandler(handleLogin)

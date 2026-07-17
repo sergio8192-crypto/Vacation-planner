@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs'
-import { signToken, verifyToken, type AuthUser } from './auth'
-import { getDb, getDbConfigError, initDb } from './db'
-import { getDefaultStoreJson, parseStore } from './vacationStore'
+import { signToken, verifyToken, type AuthUser } from './auth.js'
+import { getDb, getDbConfigError, initDb } from './db.js'
+import { getDefaultStoreJson, parseStore } from './vacationStore.js'
 
 export type ApiRequest = {
   method?: string

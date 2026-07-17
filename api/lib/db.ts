@@ -29,7 +29,7 @@ function createDbClient(): Client {
   }
 
   const __dirname = dirname(fileURLToPath(import.meta.url))
-  const dbPath = join(__dirname, '..', 'server', 'data', 'app.db')
+  const dbPath = join(__dirname, '..', '..', 'server', 'data', 'app.db')
   mkdirSync(dirname(dbPath), { recursive: true })
   return createNodeClient({ url: `file:${dbPath}` })
 }

@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import type { ApiRequest, ApiResponse } from './handlers'
+import type { ApiRequest, ApiResponse } from './handlers.js'
 
 type Handler = (req: ApiRequest, res: ApiResponse) => void | Promise<void>
 

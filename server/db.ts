@@ -1,1 +1,1 @@
-export * from '../lib/db.js'
+export * from '../api/lib/db.js'

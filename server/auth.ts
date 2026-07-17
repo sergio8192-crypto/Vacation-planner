@@ -1,8 +1,8 @@
 import type { Request, Response, NextFunction } from 'express'
-import { verifyToken, type AuthUser } from '../lib/auth.js'
+import { verifyToken, type AuthUser } from '../api/lib/auth.js'
 
-export type { AuthUser } from '../lib/auth.js'
-export { signToken, verifyToken } from '../lib/auth.js'
+export type { AuthUser } from '../api/lib/auth.js'
+export { signToken, verifyToken } from '../api/lib/auth.js'
 
 declare global {
   namespace Express {

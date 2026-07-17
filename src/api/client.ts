@@ -26,6 +26,24 @@ export function setToken(token: string | null) {
   }
 }
 
+async function parseResponse(response: Response): Promise<Record<string, unknown>> {
+  const text = await response.text()
+  if (!text) return {}
+  try {
+    return JSON.parse(text) as Record<string, unknown>
+  } catch {
+    if (!response.ok) {
+      throw new ApiError(
+        response.status === 404
+          ? 'API not found. Redeploy with serverless API routes enabled.'
+          : 'Server returned an invalid response',
+        response.status,
+      )
+    }
+    return {}
+  }
+}
+
 async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = getToken()
   const headers = new Headers(options.headers)
@@ -33,10 +51,10 @@ async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> 
   if (token) headers.set('Authorization', `Bearer ${token}`)
 
   const response = await fetch(path, { ...options, headers })
-  const data = await response.json().catch(() => ({}))
+  const data = await parseResponse(response)
 
   if (!response.ok) {
-    throw new ApiError(data.error ?? 'Request failed', response.status)
+    throw new ApiError(String(data.error ?? 'Request failed'), response.status)
   }
 
   return data as T

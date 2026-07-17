@@ -23,3 +23,6 @@ server/data
 *.njsproj
 *.sln
 *.sw?
+
+.vercel
+.env*

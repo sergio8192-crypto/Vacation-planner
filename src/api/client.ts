@@ -72,7 +72,11 @@ async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> 
   const data = await parseResponse(response)
 
   if (!response.ok) {
-    throw new ApiError(String(data.error ?? 'Request failed'), response.status)
+    const fallback =
+      response.status === 401 && !data.error
+        ? 'Unauthorized. If this is a Vercel deployment, check Deployment Protection is off for Production.'
+        : 'Request failed'
+    throw new ApiError(String(data.error ?? fallback), response.status)
   }
 
   return data as T

@@ -18,13 +18,28 @@ function withTimeout<T>(promise: Promise<T>, message: string): Promise<T> {
   ])
 }
 
+function getTursoUrl(): string | undefined {
+  return (
+    process.env.TURSO_DATABASE_URL?.trim() ||
+    process.env.LIBSQL_URL?.trim() ||
+    process.env.TURSO_CONNECTION_URL?.trim()
+  )
+}
+
+function getTursoToken(): string | undefined {
+  return (
+    process.env.TURSO_AUTH_TOKEN?.trim() ||
+    process.env.LIBSQL_AUTH_TOKEN?.trim()
+  )
+}
+
 function createDbClient(): Client {
-  const tursoUrl = process.env.TURSO_DATABASE_URL?.trim()
+  const tursoUrl = getTursoUrl()
   if (tursoUrl) {
     const factory = process.env.VERCEL ? createWebClient : createNodeClient
     return factory({
       url: tursoUrl,
-      authToken: process.env.TURSO_AUTH_TOKEN,
+      authToken: getTursoToken(),
     })
   }
 
@@ -71,12 +86,33 @@ export async function initDb(): Promise<void> {
 }
 
 export function isTursoConfigured(): boolean {
-  return Boolean(process.env.TURSO_DATABASE_URL?.trim())
+  return Boolean(getTursoUrl())
 }
 
 export function getDbConfigError(): string | null {
-  if (process.env.VERCEL === '1' && !isTursoConfigured()) {
+  if (process.env.VERCEL !== '1') return null
+
+  const url = getTursoUrl()
+  const token = getTursoToken()
+  const urlKeyExists =
+    'TURSO_DATABASE_URL' in process.env ||
+    'LIBSQL_URL' in process.env ||
+    'TURSO_CONNECTION_URL' in process.env
+  const tokenKeyExists = 'TURSO_AUTH_TOKEN' in process.env || 'LIBSQL_AUTH_TOKEN' in process.env
+
+  if (!url) {
+    if (urlKeyExists) {
+      return 'TURSO_DATABASE_URL exists in Vercel but is empty. Edit it, paste your libsql:// URL from Turso, then redeploy.'
+    }
     return 'Database not configured. Add TURSO_DATABASE_URL and TURSO_AUTH_TOKEN in Vercel.'
   }
+
+  if (!token) {
+    if (tokenKeyExists) {
+      return 'TURSO_AUTH_TOKEN exists in Vercel but is empty. Edit it, paste your token from Turso, then redeploy.'
+    }
+    return 'Database not configured. Add TURSO_AUTH_TOKEN in Vercel.'
+  }
+
   return null
 }

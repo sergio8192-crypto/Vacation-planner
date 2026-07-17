@@ -2,7 +2,10 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "functions": {
-    "api/**/*.ts": {
+    "api/*.ts": {
+      "maxDuration": 30
+    },
+    "api/auth/*.ts": {
       "maxDuration": 30
     }
   },

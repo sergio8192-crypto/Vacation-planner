@@ -1,4 +1,5 @@
 const TOKEN_KEY = 'vacation_auth_token'
+const REQUEST_TIMEOUT_MS = 12_000
 
 export class ApiError extends Error {
   status: number
@@ -35,7 +36,7 @@ async function parseResponse(response: Response): Promise<Record<string, unknown
     if (!response.ok) {
       throw new ApiError(
         response.status === 404
-          ? 'API not found. Redeploy with serverless API routes enabled.'
+          ? 'API not found. Check that /api routes are deployed on Vercel.'
           : 'Server returned an invalid response',
         response.status,
       )
@@ -50,7 +51,21 @@ async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> 
   headers.set('Content-Type', 'application/json')
   if (token) headers.set('Authorization', `Bearer ${token}`)
 
-  const response = await fetch(path, { ...options, headers })
+  const controller = new AbortController()
+  const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
+
+  let response: Response
+  try {
+    response = await fetch(path, { ...options, headers, signal: controller.signal })
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new ApiError('Request timed out. The API may be unavailable.', 408)
+    }
+    throw new ApiError('Unable to reach the server.', 0)
+  } finally {
+    window.clearTimeout(timeout)
+  }
+
   const data = await parseResponse(response)
 
   if (!response.ok) {

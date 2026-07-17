@@ -1,7 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import bcrypt from 'bcryptjs'
-import { initDb, getDb } from './db.js'
+import { initDb, getDb, getDbConfigError } from './db.js'
 import { requireAuth, signToken } from './auth.js'
 import { getDefaultStoreJson, parseStore } from './vacationStore.js'
 
@@ -11,16 +11,27 @@ export function createApp() {
   app.use(cors())
   app.use(express.json({ limit: '1mb' }))
 
-  app.use(async (_req, res, next) => {
+  app.get('/api/health', (_req, res) => {
+    res.json({
+      ok: true,
+      turso: Boolean(process.env.TURSO_DATABASE_URL?.trim()),
+    })
+  })
+
+  app.use(async (req, res, next) => {
+    const configError = getDbConfigError()
+    if (configError) {
+      res.status(503).json({ error: configError })
+      return
+    }
+
     try {
       await initDb()
       next()
-    } catch {
-      res.status(503).json({
-        error: isProductionWithoutDb()
-          ? 'Database not configured. Add TURSO_DATABASE_URL and TURSO_AUTH_TOKEN in Vercel.'
-          : 'Database unavailable',
-      })
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Database unavailable'
+      res.status(503).json({ error: message })
     }
   })
 
@@ -130,10 +141,6 @@ export function createApp() {
     res.json({ ok: true })
   })
 
-  app.get('/api/health', (_req, res) => {
-    res.json({ ok: true })
-  })
-
   return app
 }
 
@@ -143,8 +150,4 @@ function normalizeEmail(email: string): string {
 
 function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-}
-
-function isProductionWithoutDb(): boolean {
-  return process.env.VERCEL === '1' && !process.env.TURSO_DATABASE_URL
 }

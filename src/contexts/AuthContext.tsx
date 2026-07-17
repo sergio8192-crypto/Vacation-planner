@@ -10,6 +10,7 @@ import {
 import {
   ApiError,
   fetchCurrentUser,
+  getToken,
   login as loginRequest,
   register as registerRequest,
   setToken,
@@ -31,6 +32,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    const token = getToken()
+    if (!token) {
+      setLoading(false)
+      return
+    }
+
     fetchCurrentUser()
       .then(({ user }) => setUser(user))
       .catch(() => {

@@ -6,8 +6,19 @@ import { fileURLToPath } from 'node:url'
 let client: Client | null = null
 let initPromise: Promise<void> | null = null
 
+const DB_TIMEOUT_MS = 15_000
+
+function withTimeout<T>(promise: Promise<T>, message: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => {
+      setTimeout(() => reject(new Error(message)), DB_TIMEOUT_MS)
+    }),
+  ])
+}
+
 function createDbClient(): Client {
-  const tursoUrl = process.env.TURSO_DATABASE_URL
+  const tursoUrl = process.env.TURSO_DATABASE_URL?.trim()
   if (tursoUrl) {
     return createClient({
       url: tursoUrl,
@@ -30,14 +41,17 @@ export async function initDb(): Promise<void> {
   if (!initPromise) {
     initPromise = (async () => {
       const db = getDb()
-      await db.execute(`
-        CREATE TABLE IF NOT EXISTS users (
-          id TEXT PRIMARY KEY,
-          email TEXT UNIQUE NOT NULL,
-          password_hash TEXT NOT NULL,
-          created_at TEXT NOT NULL
-        )
-      `)
+      await withTimeout(
+        db.execute(`
+          CREATE TABLE IF NOT EXISTS users (
+            id TEXT PRIMARY KEY,
+            email TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            created_at TEXT NOT NULL
+          )
+        `),
+        'Database connection timed out. Check TURSO_DATABASE_URL and TURSO_AUTH_TOKEN.',
+      )
       await db.execute(`
         CREATE TABLE IF NOT EXISTS vacation_stores (
           user_id TEXT PRIMARY KEY,
@@ -46,11 +60,21 @@ export async function initDb(): Promise<void> {
           FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
       `)
-    })()
+    })().catch((error) => {
+      initPromise = null
+      throw error
+    })
   }
   await initPromise
 }
 
 export function isTursoConfigured(): boolean {
-  return Boolean(process.env.TURSO_DATABASE_URL)
+  return Boolean(process.env.TURSO_DATABASE_URL?.trim())
+}
+
+export function getDbConfigError(): string | null {
+  if (process.env.VERCEL === '1' && !isTursoConfigured()) {
+    return 'Database not configured. Add TURSO_DATABASE_URL and TURSO_AUTH_TOKEN in Vercel.'
+  }
+  return null
 }

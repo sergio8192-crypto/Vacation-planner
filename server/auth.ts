@@ -20,6 +20,10 @@ export function signToken(user: AuthUser): string {
   return jwt.sign(user, JWT_SECRET, { expiresIn: '7d' })
 }
 
+export function verifyToken(token: string): AuthUser {
+  return jwt.verify(token, JWT_SECRET) as AuthUser
+}
+
 export function requireAuth(req: Request, res: Response, next: NextFunction): void {
   const header = req.headers.authorization
   if (!header?.startsWith('Bearer ')) {

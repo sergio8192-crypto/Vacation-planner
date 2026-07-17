@@ -33,11 +33,14 @@ async function parseResponse(response: Response): Promise<Record<string, unknown
   try {
     return JSON.parse(text) as Record<string, unknown>
   } catch {
-    if (!response.ok) {
+    const isHtml = text.trimStart().startsWith('<!DOCTYPE') || text.trimStart().startsWith('<html')
+    if (!response.ok || isHtml) {
       throw new ApiError(
-        response.status === 404
-          ? 'API not found. Check that /api routes are deployed on Vercel.'
-          : 'Server returned an invalid response',
+        isHtml
+          ? 'API returned HTML instead of JSON. The /api routes may not be deployed on Vercel.'
+          : response.status === 404
+            ? 'API not found. Check that /api routes are deployed on Vercel.'
+            : `Server returned an invalid response (${response.status})`,
         response.status,
       )
     }

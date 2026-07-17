@@ -3,7 +3,7 @@ import cors from 'cors'
 import bcrypt from 'bcryptjs'
 import { initDb, getDb, getDbConfigError } from './db.js'
 import { requireAuth, signToken } from './auth.js'
-import { getDefaultStoreJson, parseStore } from './vacationStore.js'
+import { getDefaultStoreJson, parseStore } from '../lib/vacationStore.js'
 
 export function createApp() {
   const app = express()

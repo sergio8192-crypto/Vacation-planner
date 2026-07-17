@@ -1,7 +1,7 @@
-import { signToken, verifyToken, type AuthUser } from '../auth.js'
-import { getDb, initDb, getDbConfigError } from '../db.js'
-import { getDefaultStoreJson, parseStore } from '../vacationStore.js'
 import bcrypt from 'bcryptjs'
+import { signToken, verifyToken, type AuthUser } from './auth'
+import { getDb, getDbConfigError, initDb } from './db'
+import { getDefaultStoreJson, parseStore } from './vacationStore'
 
 export type ApiRequest = {
   method?: string
@@ -12,7 +12,8 @@ export type ApiRequest = {
 export type ApiResponse = {
   status: (code: number) => ApiResponse
   json: (body: unknown) => void
-  end: () => void
+  end?: () => void
+  writableEnded?: boolean
 }
 
 function getHeader(req: ApiRequest, name: string): string | undefined {
@@ -22,7 +23,9 @@ function getHeader(req: ApiRequest, name: string): string | undefined {
 }
 
 function readJsonBody<T>(req: ApiRequest): T {
-  if (typeof req.body === 'string') return JSON.parse(req.body) as T
+  if (typeof req.body === 'string') {
+    return req.body ? (JSON.parse(req.body) as T) : ({} as T)
+  }
   return (req.body ?? {}) as T
 }
 

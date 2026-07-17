@@ -1,5 +1,4 @@
-import { handleHealth } from '../server/handlers.js'
+import { handleHealth } from '../../lib/handlers'
+import { withHandler } from '../../lib/withHandler'
 
-export default function handler(req: any, res: any) {
-  handleHealth(req, res)
-}
+export default withHandler(handleHealth)

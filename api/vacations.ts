@@ -1,5 +1,4 @@
-import { handleVacations } from '../server/handlers.js'
+import { handleVacations } from '../../lib/handlers'
+import { withHandler } from '../../lib/withHandler'
 
-export default function handler(req: any, res: any) {
-  return handleVacations(req, res)
-}
+export default withHandler(handleVacations)

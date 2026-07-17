@@ -1,12 +1,8 @@
 import type { Request, Response, NextFunction } from 'express'
-import jwt from 'jsonwebtoken'
+import { verifyToken, type AuthUser } from '../lib/auth.js'
 
-const JWT_SECRET = process.env.JWT_SECRET ?? 'dev-vacation-planner-secret-change-in-production'
-
-export interface AuthUser {
-  id: string
-  email: string
-}
+export type { AuthUser } from '../lib/auth.js'
+export { signToken, verifyToken } from '../lib/auth.js'
 
 declare global {
   namespace Express {
@@ -14,14 +10,6 @@ declare global {
       user?: AuthUser
     }
   }
-}
-
-export function signToken(user: AuthUser): string {
-  return jwt.sign(user, JWT_SECRET, { expiresIn: '7d' })
-}
-
-export function verifyToken(token: string): AuthUser {
-  return jwt.verify(token, JWT_SECRET) as AuthUser
 }
 
 export function requireAuth(req: Request, res: Response, next: NextFunction): void {
@@ -32,12 +20,9 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
   }
 
   try {
-    const token = header.slice(7)
-    req.user = jwt.verify(token, JWT_SECRET) as AuthUser
+    req.user = verifyToken(header.slice(7))
     next()
   } catch {
     res.status(401).json({ error: 'Invalid or expired token' })
   }
 }
-
-export { JWT_SECRET }

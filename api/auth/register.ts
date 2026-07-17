@@ -1,5 +1,4 @@
-import { handleRegister } from '../server/handlers.js'
+import { handleRegister } from '../../lib/handlers'
+import { withHandler } from '../../lib/withHandler'
 
-export default function handler(req: any, res: any) {
-  return handleRegister(req, res)
-}
+export default withHandler(handleRegister)

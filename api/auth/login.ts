@@ -1,5 +1,4 @@
-import { handleLogin } from '../../server/handlers.js'
+import { handleLogin } from '../../lib/handlers'
+import { withHandler } from '../../lib/withHandler'
 
-export default function handler(req: any, res: any) {
-  return handleLogin(req, res)
-}
+export default withHandler(handleLogin)

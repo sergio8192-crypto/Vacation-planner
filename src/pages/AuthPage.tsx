@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { ApiError, useAuth } from '../contexts/AuthContext'
+import { AuthBrand } from '../components/AuthBrand'
 
 export function AuthPage() {
   const { login, register } = useAuth()
@@ -45,15 +46,7 @@ export function AuthPage() {
   return (
     <div className="auth-page">
       <div className="auth-shell">
-        <header className="auth-brand">
-          <span className="logo-icon" aria-hidden="true">
-            ✈
-          </span>
-          <h1 className="auth-brand-title">Voyage</h1>
-          <p className="auth-brand-tagline">
-            Plan trips, compare options, and track your budget — all in one place.
-          </p>
-        </header>
+        <AuthBrand />
 
         <div className="auth-cards">
           <form className="auth-card" onSubmit={handleLogin} autoComplete="on">
@@ -73,6 +66,9 @@ export function AuthPage() {
                 autoComplete="current-password"
               />
             </div>
+            <p className="auth-link auth-link-inline">
+              <a href="/forgot-password">Forgot password?</a>
+            </p>
             <button type="submit" className="btn btn-auth-primary" disabled={loginSubmitting}>
               {loginSubmitting ? 'Please wait...' : 'Sign in'}
             </button>

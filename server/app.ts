@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs'
 import { initDb, getDb, getDbConfigError } from './db.js'
 import { requireAuth, signToken } from './auth.js'
 import { getDefaultStoreJson, parseStore } from '../api/lib/vacationStore.js'
+import { handleForgotPassword, handleResetPassword } from '../api/lib/handlers.js'
 
 export function createApp() {
   const app = express()
@@ -98,6 +99,14 @@ export function createApp() {
 
   app.get('/api/auth/me', requireAuth, (req, res) => {
     res.json({ user: req.user })
+  })
+
+  app.post('/api/auth/forgot-password', async (req, res) => {
+    await handleForgotPassword(req, res)
+  })
+
+  app.post('/api/auth/reset-password', async (req, res) => {
+    await handleResetPassword(req, res)
   })
 
   app.get('/api/vacations', requireAuth, async (req, res) => {

@@ -77,6 +77,20 @@ export async function initDb(): Promise<void> {
           FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
       `)
+      await db.execute(`
+        CREATE TABLE IF NOT EXISTS password_reset_tokens (
+          id TEXT PRIMARY KEY,
+          user_id TEXT NOT NULL,
+          token_hash TEXT NOT NULL,
+          expires_at TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+      `)
+      await db.execute(`
+        CREATE INDEX IF NOT EXISTS idx_password_reset_token_hash
+        ON password_reset_tokens(token_hash)
+      `)
     })().catch((error) => {
       initPromise = null
       throw error

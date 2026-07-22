@@ -100,6 +100,20 @@ export function fetchCurrentUser() {
   return apiFetch<{ user: AuthUser }>('/api/auth/me')
 }
 
+export function requestPasswordReset(email: string) {
+  return apiFetch<{ ok: boolean; message: string }>('/api/auth/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  })
+}
+
+export function resetPassword(token: string, password: string) {
+  return apiFetch<{ ok: boolean; message: string }>('/api/auth/reset-password', {
+    method: 'POST',
+    body: JSON.stringify({ token, password }),
+  })
+}
+
 export function fetchVacations<T>() {
   return apiFetch<T>('/api/vacations')
 }

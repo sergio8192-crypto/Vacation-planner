@@ -2,6 +2,32 @@ import type { OptionCategory, OptionItem } from '../types'
 import { formatDisplayDate, formatDateRange, joinMetaParts } from './dates'
 import { formatCurrency } from './format'
 
+const PEOPLE_PRICED_CATEGORIES: OptionCategory[] = [
+  'flights',
+  'cruises',
+  'groundTransport',
+  'activities',
+]
+
+export function usesPeoplePricing(category: OptionCategory): boolean {
+  return PEOPLE_PRICED_CATEGORIES.includes(category)
+}
+
+export function getNumberOfPeople(item: OptionItem): number {
+  const count = item.numberOfPeople ?? 1
+  return count >= 1 ? count : 1
+}
+
+export function getPeopleBasedTotal(item: OptionItem): number {
+  return item.price * getNumberOfPeople(item)
+}
+
+function peopleDetail(item: OptionItem): string {
+  const people = getNumberOfPeople(item)
+  if (people === 1) return ''
+  return `${people} people · ${formatCurrency(item.price)}/person`
+}
+
 export function getHotelTotal(item: OptionItem): number {
   if (item.nights != null && item.pricePerNight != null) {
     return item.nights * item.pricePerNight
@@ -26,22 +52,23 @@ export function getOptionDateLabel(category: OptionCategory, item: OptionItem): 
 export function getOptionDetails(category: OptionCategory, item: OptionItem): string {
   switch (category) {
     case 'flights':
-      return item.route ?? item.description
+      return joinMetaParts(item.route ?? item.description, peopleDetail(item))
     case 'hotels': {
       const nights = item.nights ?? 1
       const perNight = item.pricePerNight ?? item.price / nights
       return `${nights} night${nights === 1 ? '' : 's'} · ${formatCurrency(perNight)}/night`
     }
     case 'groundTransport': {
-      const parts = [item.mode, item.route ?? item.description].filter(Boolean)
+      const parts = [item.mode, item.route ?? item.description, peopleDetail(item)].filter(Boolean)
       return parts.join(' · ')
     }
     case 'activities':
-      return item.notes ?? item.description
+      return joinMetaParts(item.notes ?? item.description, peopleDetail(item))
     case 'cruises': {
       const parts = [
         item.destination,
         item.duration ? `Duration: ${item.duration}` : '',
+        peopleDetail(item),
       ].filter(Boolean)
       return parts.join(' · ')
     }
@@ -64,12 +91,18 @@ export function getOptionPriceLabel(category: OptionCategory, item: OptionItem):
   if (category === 'hotels') {
     return formatCurrency(getHotelTotal(item))
   }
+  if (usesPeoplePricing(category)) {
+    return formatCurrency(getPeopleBasedTotal(item))
+  }
   return formatCurrency(item.price)
 }
 
 export function getSelectedItemCost(category: OptionCategory, item: OptionItem): number {
   if (category === 'hotels') {
     return getHotelTotal(item)
+  }
+  if (usesPeoplePricing(category)) {
+    return getPeopleBasedTotal(item)
   }
   return item.price
 }

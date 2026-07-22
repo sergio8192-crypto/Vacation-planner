@@ -6,6 +6,35 @@ import { getOptionMeta, getOptionPriceLabel } from '../utils/optionDisplay'
 
 type AddPayload = Omit<OptionItem, 'id'>
 
+function parsePeople(value: string): number {
+  const count = parseInt(value, 10)
+  return !Number.isNaN(count) && count >= 1 ? count : 1
+}
+
+function PeopleCountField({
+  id,
+  value,
+  onChange,
+}: {
+  id: string
+  value: string
+  onChange: (value: string) => void
+}) {
+  return (
+    <div className="form-field">
+      <label htmlFor={id}>Number of people</label>
+      <input
+        id={id}
+        type="number"
+        min="1"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        required
+      />
+    </div>
+  )
+}
+
 interface CategorySectionProps {
   category: OptionCategory
   title: string
@@ -138,22 +167,26 @@ function FlightForm({
   const [name, setName] = useState('')
   const [route, setRoute] = useState('')
   const [date, setDate] = useState('')
+  const [people, setPeople] = useState('1')
   const [price, setPrice] = useState('')
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
     const parsed = parseFloat(price)
+    const numberOfPeople = parsePeople(people)
     if (!name.trim() || isNaN(parsed) || parsed < 0) return
     onAdd({
       name: name.trim(),
       route: route.trim(),
       date: date || undefined,
       description: route.trim(),
+      numberOfPeople,
       price: parsed,
     })
     setName('')
     setRoute('')
     setDate('')
+    setPeople('1')
     setPrice('')
   }
 
@@ -188,8 +221,9 @@ function FlightForm({
             onChange={(e) => setDate(e.target.value)}
           />
         </div>
+        <PeopleCountField id="flight-people" value={people} onChange={setPeople} />
         <div className="form-field">
-          <label htmlFor="flight-price">Price ($)</label>
+          <label htmlFor="flight-price">Price per person ($)</label>
           <input
             id="flight-price"
             type="number"
@@ -334,11 +368,13 @@ function TransitForm({
   const [mode, setMode] = useState('Train')
   const [route, setRoute] = useState('')
   const [date, setDate] = useState('')
+  const [people, setPeople] = useState('1')
   const [price, setPrice] = useState('')
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
     const parsed = parseFloat(price)
+    const numberOfPeople = parsePeople(people)
     if (!name.trim() || isNaN(parsed) || parsed < 0) return
     const routeText = route.trim()
     onAdd({
@@ -347,12 +383,14 @@ function TransitForm({
       route: routeText,
       date: date || undefined,
       description: [mode, routeText].filter(Boolean).join(' · '),
+      numberOfPeople,
       price: parsed,
     })
     setName('')
     setMode('Train')
     setRoute('')
     setDate('')
+    setPeople('1')
     setPrice('')
   }
 
@@ -394,8 +432,9 @@ function TransitForm({
             onChange={(e) => setDate(e.target.value)}
           />
         </div>
+        <PeopleCountField id="transit-people" value={people} onChange={setPeople} />
         <div className="form-field">
-          <label htmlFor="transit-price">Price ($)</label>
+          <label htmlFor="transit-price">Price per person ($)</label>
           <input
             id="transit-price"
             type="number"
@@ -425,22 +464,26 @@ function ActivityForm({
   const [name, setName] = useState('')
   const [notes, setNotes] = useState('')
   const [date, setDate] = useState('')
+  const [people, setPeople] = useState('1')
   const [price, setPrice] = useState('')
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
     const parsed = parseFloat(price)
+    const numberOfPeople = parsePeople(people)
     if (!name.trim() || isNaN(parsed) || parsed < 0) return
     onAdd({
       name: name.trim(),
       notes: notes.trim(),
       date: date || undefined,
       description: notes.trim(),
+      numberOfPeople,
       price: parsed,
     })
     setName('')
     setNotes('')
     setDate('')
+    setPeople('1')
     setPrice('')
   }
 
@@ -475,8 +518,9 @@ function ActivityForm({
             onChange={(e) => setDate(e.target.value)}
           />
         </div>
+        <PeopleCountField id="activity-people" value={people} onChange={setPeople} />
         <div className="form-field">
-          <label htmlFor="activity-price">Price ($)</label>
+          <label htmlFor="activity-price">Price per person ($)</label>
           <input
             id="activity-price"
             type="number"
@@ -507,11 +551,13 @@ function CruiseForm({
   const [destination, setDestination] = useState('')
   const [sailDate, setSailDate] = useState('')
   const [duration, setDuration] = useState('')
+  const [people, setPeople] = useState('1')
   const [price, setPrice] = useState('')
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
     const parsed = parseFloat(price)
+    const numberOfPeople = parsePeople(people)
     if (!cruiseLine.trim() || !destination.trim() || isNaN(parsed) || parsed < 0) return
     onAdd({
       name: cruiseLine.trim(),
@@ -520,12 +566,14 @@ function CruiseForm({
       date: sailDate || undefined,
       duration: duration.trim() || undefined,
       description: [destination.trim(), duration.trim()].filter(Boolean).join(' · '),
+      numberOfPeople,
       price: parsed,
     })
     setCruiseLine('')
     setDestination('')
     setSailDate('')
     setDuration('')
+    setPeople('1')
     setPrice('')
   }
 
@@ -570,8 +618,9 @@ function CruiseForm({
             placeholder="e.g. 7 nights"
           />
         </div>
+        <PeopleCountField id="cruise-people" value={people} onChange={setPeople} />
         <div className="form-field">
-          <label htmlFor="cruise-price">Price ($)</label>
+          <label htmlFor="cruise-price">Price per person ($)</label>
           <input
             id="cruise-price"
             type="number"

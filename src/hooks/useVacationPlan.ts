@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { OptionCategory, OptionItem, VacationPlan, VacationStore } from '../types'
 import { EMPTY_PLAN } from '../types'
 import { fetchVacations, saveVacations } from '../api/client'
-import { getHotelTotal } from '../utils/optionDisplay'
+import { getHotelTotal, getSelectedItemCost } from '../utils/optionDisplay'
 import {
   createDefaultStore,
   createSavedVacation,
@@ -196,12 +196,27 @@ export function useVacationPlan() {
   )
   const selectedCruises = plan.cruises.filter((c) => plan.selectedCruiseIds.includes(c.id))
 
-  const flightCost = selectedFlights.reduce((sum, f) => sum + f.price, 0)
+  const flightCost = selectedFlights.reduce(
+    (sum, f) => sum + getSelectedItemCost('flights', f),
+    0,
+  )
   const hotelCost = selectedHotels.reduce((sum, h) => sum + getHotelTotal(h), 0)
-  const carRentalCost = selectedCarRentals.reduce((sum, c) => sum + c.price, 0)
-  const groundTransportCost = selectedGroundTransport.reduce((sum, t) => sum + t.price, 0)
-  const activitiesCost = selectedActivities.reduce((sum, a) => sum + a.price, 0)
-  const cruiseCost = selectedCruises.reduce((sum, c) => sum + c.price, 0)
+  const carRentalCost = selectedCarRentals.reduce(
+    (sum, c) => sum + getSelectedItemCost('carRentals', c),
+    0,
+  )
+  const groundTransportCost = selectedGroundTransport.reduce(
+    (sum, t) => sum + getSelectedItemCost('groundTransport', t),
+    0,
+  )
+  const activitiesCost = selectedActivities.reduce(
+    (sum, a) => sum + getSelectedItemCost('activities', a),
+    0,
+  )
+  const cruiseCost = selectedCruises.reduce(
+    (sum, c) => sum + getSelectedItemCost('cruises', c),
+    0,
+  )
   const totalCost =
     flightCost + hotelCost + carRentalCost + groundTransportCost + activitiesCost + cruiseCost
 

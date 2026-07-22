@@ -1,16 +1,15 @@
-import type { OptionItem, VacationPlan } from '../types'
-import { getHotelTotal } from './optionDisplay'
+import type { OptionCategory, OptionItem, VacationPlan } from '../types'
+import { getSelectedItemCost } from './optionDisplay'
 
-function itemCost(category: keyof VacationPlan, item: OptionItem): number {
-  if (category === 'hotels') return getHotelTotal(item)
-  return item.price
+function itemCost(category: OptionCategory, item: OptionItem): number {
+  return getSelectedItemCost(category, item)
 }
 
 export function computePlanTotal(plan: VacationPlan): number {
   function sumSelected(
     items: OptionItem[],
     selectedIds: string[],
-    category: keyof VacationPlan,
+    category: OptionCategory,
   ): number {
     return items
       .filter((item) => selectedIds.includes(item.id))

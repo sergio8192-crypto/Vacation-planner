@@ -17,6 +17,7 @@ export interface OptionItem {
   rentalCompany?: string
   city?: string
   vehicleType?: string
+  numberOfPeople?: number
 }
 
 export interface VacationPlan {

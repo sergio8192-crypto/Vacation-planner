@@ -2,7 +2,7 @@ import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import type { OptionCategory, OptionItem } from '../types'
 import { formatCurrency } from './format'
-import { getHotelTotal, getOptionDateLabel, getOptionDetails } from './optionDisplay'
+import { getOptionDateLabel, getOptionDetails, getSelectedItemCost } from './optionDisplay'
 
 interface BudgetExportData {
   tripName: string
@@ -26,8 +26,7 @@ function sanitizeFilename(name: string): string {
 }
 
 function itemAmount(category: OptionCategory, item: OptionItem): string {
-  if (category === 'hotels') return formatCurrency(getHotelTotal(item))
-  return formatCurrency(item.price)
+  return formatCurrency(getSelectedItemCost(category, item))
 }
 
 function addCategorySection(

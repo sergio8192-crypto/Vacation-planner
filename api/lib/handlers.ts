@@ -1,17 +1,7 @@
 import bcrypt from 'bcryptjs'
 import { signToken, verifyToken, type AuthUser } from './auth.js'
 import { getDb, getDbConfigError, initDb } from './db.js'
-import { sendPasswordResetEmail } from './email.js'
-import {
-  generateResetToken,
-  getAppUrl,
-  hashResetToken,
-  RESET_TOKEN_TTL_MS,
-} from './passwordReset.js'
 import { getDefaultStoreJson, parseStore } from './vacationStore.js'
-
-const RESET_SUCCESS_MESSAGE =
-  'If an account exists for that email, you will receive a password reset link shortly.'
 
 export type ApiRequest = {
   method?: string
@@ -158,117 +148,6 @@ export async function handleLogin(req: ApiRequest, res: ApiResponse) {
 
   const user = { id: String(row.id), email: String(row.email) }
   res.status(200).json({ token: signToken(user), user })
-}
-
-export async function handleForgotPassword(req: ApiRequest, res: ApiResponse) {
-  if (req.method !== 'POST') {
-    res.status(405).json({ error: 'Method not allowed' })
-    return
-  }
-  if (!(await ensureDbReady(res))) return
-
-  const body = readJsonBody<{ email?: string }>(req)
-  const email = normalizeEmail(String(body.email ?? ''))
-
-  if (!isValidEmail(email)) {
-    res.status(400).json({ error: 'Enter a valid email address' })
-    return
-  }
-
-  const result = await getDb().execute({
-    sql: 'SELECT id FROM users WHERE email = ?',
-    args: [email],
-  })
-
-  const row = result.rows[0]
-  if (row) {
-    const userId = String(row.id)
-    const token = generateResetToken()
-    const tokenHash = hashResetToken(token)
-    const now = new Date()
-    const expiresAt = new Date(now.getTime() + RESET_TOKEN_TTL_MS).toISOString()
-    const createdAt = now.toISOString()
-
-    await getDb().batch([
-      {
-        sql: 'DELETE FROM password_reset_tokens WHERE user_id = ?',
-        args: [userId],
-      },
-      {
-        sql: `INSERT INTO password_reset_tokens (id, user_id, token_hash, expires_at, created_at)
-              VALUES (?, ?, ?, ?, ?)`,
-        args: [crypto.randomUUID(), userId, tokenHash, expiresAt, createdAt],
-      },
-    ])
-
-    const resetUrl = `${getAppUrl()}/reset-password?token=${encodeURIComponent(token)}`
-    try {
-      await sendPasswordResetEmail(email, resetUrl)
-    } catch (error) {
-      console.error('Failed to send password reset email:', error)
-    }
-  }
-
-  res.status(200).json({ ok: true, message: RESET_SUCCESS_MESSAGE })
-}
-
-export async function handleResetPassword(req: ApiRequest, res: ApiResponse) {
-  if (req.method !== 'POST') {
-    res.status(405).json({ error: 'Method not allowed' })
-    return
-  }
-  if (!(await ensureDbReady(res))) return
-
-  const body = readJsonBody<{ token?: string; password?: string }>(req)
-  const token = String(body.token ?? '').trim()
-  const password = String(body.password ?? '')
-
-  if (!token) {
-    res.status(400).json({ error: 'Reset token is required' })
-    return
-  }
-  if (password.length < 8) {
-    res.status(400).json({ error: 'Password must be at least 8 characters' })
-    return
-  }
-
-  const tokenHash = hashResetToken(token)
-  const result = await getDb().execute({
-    sql: 'SELECT user_id, expires_at FROM password_reset_tokens WHERE token_hash = ?',
-    args: [tokenHash],
-  })
-
-  const row = result.rows[0]
-  if (!row) {
-    res.status(400).json({ error: 'This reset link is invalid or has expired' })
-    return
-  }
-
-  const expiresAt = new Date(String(row.expires_at))
-  if (expiresAt.getTime() < Date.now()) {
-    await getDb().execute({
-      sql: 'DELETE FROM password_reset_tokens WHERE token_hash = ?',
-      args: [tokenHash],
-    })
-    res.status(400).json({ error: 'This reset link is invalid or has expired' })
-    return
-  }
-
-  const userId = String(row.user_id)
-  const passwordHash = bcrypt.hashSync(password, 10)
-
-  await getDb().batch([
-    {
-      sql: 'UPDATE users SET password_hash = ? WHERE id = ?',
-      args: [passwordHash, userId],
-    },
-    {
-      sql: 'DELETE FROM password_reset_tokens WHERE user_id = ?',
-      args: [userId],
-    },
-  ])
-
-  res.status(200).json({ ok: true, message: 'Your password has been reset. You can sign in now.' })
 }
 
 export async function handleMe(req: ApiRequest, res: ApiResponse) {

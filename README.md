@@ -5,7 +5,6 @@ Compare flights, hotels, transport, and activities to estimate your trip cost �
 ## Features
 
 - User registration and login
-- Forgot password with email reset link
 - Each user sees only their own vacation plans
 - Add multiple flight, hotel, transport, and activity options
 - Select multiple options and see a live cost breakdown
@@ -45,13 +44,8 @@ In your Vercel project → **Settings → Environment Variables**, add:
 | `TURSO_DATABASE_URL` | Turso database URL (`libsql://...`) |
 | `TURSO_AUTH_TOKEN` | Turso auth token |
 | `JWT_SECRET` | Long random secret for login tokens |
-| `RESEND_API_KEY` | [Resend](https://resend.com) API key for password reset emails |
-| `EMAIL_FROM` | Sender address (e.g. `Voyage <noreply@yourdomain.com>`) |
-| `APP_URL` | Public app URL for reset links (e.g. `https://your-app.vercel.app`) |
 
 Apply to **Production**, **Preview**, and **Development**.
-
-For password reset emails in production, verify a domain in Resend and set `EMAIL_FROM` to an address on that domain. Locally, if `RESEND_API_KEY` is not set, reset links are printed in the API server console.
 
 ### 3. Deploy
 

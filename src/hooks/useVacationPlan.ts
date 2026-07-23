@@ -6,6 +6,7 @@ import { getHotelTotal, getSelectedItemCost } from '../utils/optionDisplay'
 import {
   createDefaultStore,
   createSavedVacation,
+  migratePlan,
   normalizeStore,
   uniqueTripName,
 } from '../utils/vacationStore'
@@ -183,7 +184,7 @@ export function useVacationPlan() {
   }, [])
 
   const activeVacation = store?.vacations.find((v) => v.id === store.activeVacationId)
-  const plan = activeVacation?.plan ?? EMPTY_PLAN
+  const plan = migratePlan((activeVacation?.plan ?? EMPTY_PLAN) as unknown as Record<string, unknown>)
 
   const selectedFlights = plan.flights.filter((f) => plan.selectedFlightIds.includes(f.id))
   const selectedHotels = plan.hotels.filter((h) => plan.selectedHotelIds.includes(h.id))

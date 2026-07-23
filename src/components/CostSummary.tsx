@@ -1,5 +1,6 @@
 import type { OptionItem } from '../types'
 import { formatCurrency } from '../utils/format'
+import { CATEGORY_META } from '../utils/categoryIcons'
 
 interface CostSummaryProps {
   tripName: string
@@ -65,29 +66,43 @@ export function CostSummary({
     })
   }
 
+  async function handleCreateItinerary() {
+    if (!hasSelections) return
+    const { exportItineraryToPdf } = await import('../utils/exportItineraryPdf')
+    exportItineraryToPdf({
+      tripName,
+      selectedFlights,
+      selectedHotels,
+      selectedCarRentals,
+      selectedGroundTransport,
+      selectedActivities,
+      selectedCruises,
+    })
+  }
+
   const selectionChips = [
     selectedFlights.length > 0 && {
-      label: 'Flights',
+      label: CATEGORY_META.flights.label,
       names: selectedFlights.map((f) => f.name).join(', '),
     },
     selectedCruises.length > 0 && {
-      label: 'Cruises',
+      label: CATEGORY_META.cruises.label,
       names: selectedCruises.map((c) => c.name).join(', '),
     },
     selectedHotels.length > 0 && {
-      label: 'Hotels',
+      label: CATEGORY_META.hotels.label,
       names: selectedHotels.map((h) => h.name).join(', '),
     },
     selectedCarRentals.length > 0 && {
-      label: 'Car Rentals',
+      label: CATEGORY_META.carRentals.label,
       names: selectedCarRentals.map((c) => c.name).join(', '),
     },
     selectedGroundTransport.length > 0 && {
-      label: 'Transport',
+      label: CATEGORY_META.groundTransport.label,
       names: selectedGroundTransport.map((t) => t.name).join(', '),
     },
     selectedActivities.length > 0 && {
-      label: 'Activities',
+      label: CATEGORY_META.activities.label,
       names: selectedActivities.map((a) => a.name).join(', '),
     },
   ].filter(Boolean) as { label: string; names: string }[]
@@ -164,6 +179,14 @@ export function CostSummary({
           disabled={!hasSelections}
         >
           Export to PDF
+        </button>
+        <button
+          type="button"
+          className="btn btn-itinerary"
+          onClick={handleCreateItinerary}
+          disabled={!hasSelections}
+        >
+          Create Itinerary
         </button>
         <button type="button" className="btn btn-clear" onClick={onReset}>
           Clear current trip

@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { CostSummary } from '../components/CostSummary'
 import { CategorySection } from '../components/CategorySection'
 import { VacationSidebar } from '../components/VacationSidebar'
+import { CATEGORY_META } from '../utils/categoryIcons'
 
 export function PlannerPage() {
   const { user, logout } = useAuth()
@@ -97,7 +98,7 @@ export function PlannerPage() {
             <CategorySection
               category="flights"
               title="Flights"
-              icon="🛫"
+              icon={CATEGORY_META.flights.icon}
               description="Add flight options — select as many as you like"
               items={plan.flights}
               selectedIds={plan.selectedFlightIds}
@@ -111,7 +112,7 @@ export function PlannerPage() {
             <CategorySection
               category="cruises"
               title="Cruises"
-              icon="🚢"
+              icon={CATEGORY_META.cruises.icon}
               description="Add cruise options — select as many as you like"
               items={plan.cruises}
               selectedIds={plan.selectedCruiseIds}
@@ -125,7 +126,7 @@ export function PlannerPage() {
             <CategorySection
               category="hotels"
               title="Hotels"
-              icon="🏨"
+              icon={CATEGORY_META.hotels.icon}
               description="Add hotel options — select as many as you like"
               items={plan.hotels}
               selectedIds={plan.selectedHotelIds}
@@ -139,7 +140,7 @@ export function PlannerPage() {
             <CategorySection
               category="carRentals"
               title="Car Rentals"
-              icon="🚗"
+              icon={CATEGORY_META.carRentals.icon}
               description="Add car rental options — select as many as you like"
               items={plan.carRentals}
               selectedIds={plan.selectedCarRentalIds}
@@ -153,7 +154,7 @@ export function PlannerPage() {
             <CategorySection
               category="groundTransport"
               title="Trains & Buses"
-              icon="🚆"
+              icon={CATEGORY_META.groundTransport.icon}
               description="Add ground transport options — select as many as you like"
               items={plan.groundTransport}
               selectedIds={plan.selectedGroundTransportIds}
@@ -167,7 +168,7 @@ export function PlannerPage() {
             <CategorySection
               category="activities"
               title="Activities"
-              icon="🎟"
+              icon={CATEGORY_META.activities.icon}
               description="Add things to do — select as many as you like"
               items={plan.activities}
               selectedIds={plan.selectedActivityIds}

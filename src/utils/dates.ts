@@ -4,6 +4,12 @@ const DISPLAY: Intl.DateTimeFormatOptions = {
   year: 'numeric',
 }
 
+export function formatShortDate(isoDate: string): string {
+  const date = parseIsoDate(isoDate)
+  if (!date) return ''
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
 export function formatDisplayDate(isoDate: string): string {
   const date = parseIsoDate(isoDate)
   if (!date) return ''

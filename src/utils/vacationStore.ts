@@ -1,45 +1,11 @@
 import type { SavedVacation, VacationPlan, VacationStore } from '../types'
 import { EMPTY_PLAN } from '../types'
+import { migratePlan } from './migratePlan'
 
 const STORAGE_KEY = 'vacation-planner-store'
 const LEGACY_STORAGE_KEY = 'vacation-plan'
 
-export function migratePlan(raw: Record<string, unknown>): VacationPlan {
-  const plan = { ...EMPTY_PLAN, ...raw } as VacationPlan & {
-    selectedFlightId?: string | null
-    selectedHotelId?: string | null
-  }
-
-  if (!Array.isArray(plan.selectedFlightIds)) {
-    plan.selectedFlightIds = plan.selectedFlightId ? [plan.selectedFlightId] : []
-  }
-  if (!Array.isArray(plan.selectedHotelIds)) {
-    plan.selectedHotelIds = plan.selectedHotelId ? [plan.selectedHotelId] : []
-  }
-  if (!Array.isArray(plan.selectedActivityIds)) {
-    plan.selectedActivityIds = []
-  }
-  if (!Array.isArray(plan.groundTransport)) {
-    plan.groundTransport = []
-  }
-  if (!Array.isArray(plan.selectedGroundTransportIds)) {
-    plan.selectedGroundTransportIds = []
-  }
-  if (!Array.isArray(plan.cruises)) {
-    plan.cruises = []
-  }
-  if (!Array.isArray(plan.selectedCruiseIds)) {
-    plan.selectedCruiseIds = []
-  }
-  if (!Array.isArray(plan.carRentals)) {
-    plan.carRentals = []
-  }
-  if (!Array.isArray(plan.selectedCarRentalIds)) {
-    plan.selectedCarRentalIds = []
-  }
-
-  return plan
-}
+export { migratePlan } from './migratePlan'
 
 export function createSavedVacation(plan: VacationPlan = { ...EMPTY_PLAN }): SavedVacation {
   return {
@@ -60,7 +26,7 @@ export function normalizeStore(raw: unknown): VacationStore {
     if (Array.isArray(parsed.vacations) && parsed.vacations.length > 0) {
       const vacations = parsed.vacations.map((vacation) => ({
         ...vacation,
-        plan: migratePlan(vacation.plan as unknown as Record<string, unknown>),
+        plan: migratePlan((vacation?.plan ?? {}) as unknown as Record<string, unknown>),
       }))
       const activeVacationId = vacations.some((v) => v.id === parsed.activeVacationId)
         ? parsed.activeVacationId

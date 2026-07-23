@@ -4,6 +4,7 @@ import {
   getTripDateRange,
   groupItineraryByDate,
   UNSCHEDULED_SORT_KEY,
+  type ItineraryDayGroup,
   type ItineraryEntry,
   type ItineraryInput,
 } from './buildItinerary'
@@ -18,10 +19,11 @@ const MAUVE = [215, 186, 178] as const
 const MAUVE_DARK = [194, 158, 148] as const
 const HEADER_SALMON = [205, 155, 140] as const
 
-const PAGE_MARGIN = 14
-const CONTENT_WIDTH = 182
-const DAY_BOX_WIDTH = 22
-const ICON_SIZE = 5
+const PAGE_MARGIN = 12
+const CONTENT_WIDTH = 186
+const DATE_BOX_WIDTH = 16
+const ICON_SIZE = 3.5
+const PAGE_BOTTOM = 287
 
 const emojiImageCache = new Map<string, string>()
 
@@ -50,55 +52,68 @@ function getEmojiImageDataUrl(emoji: string): string {
   return dataUrl
 }
 
-function ensurePageSpace(doc: jsPDF, y: number, needed: number): number {
-  const pageHeight = doc.internal.pageSize.getHeight()
-  if (y + needed <= pageHeight - 16) return y
-  doc.addPage()
-  return 18
+function getDateColumnLines(sortKey: string): string[] {
+  if (sortKey === UNSCHEDULED_SORT_KEY) {
+    return ['Other']
+  }
+
+  const short = formatShortDate(sortKey)
+  const parts = short.split(' ')
+  if (parts.length === 2) {
+    return parts
+  }
+  return [short]
 }
 
-function drawHeader(doc: jsPDF, tripName: string): number {
+function drawHeader(doc: jsPDF, tripName: string, scale: number): number {
   const pageWidth = doc.internal.pageSize.getWidth()
+  const headerHeight = 26 * scale
 
   doc.setFillColor(...NAVY)
-  doc.rect(0, 0, pageWidth, 36, 'F')
+  doc.rect(0, 0, pageWidth, headerHeight, 'F')
 
   doc.setFont('helvetica', 'normal')
-  doc.setFontSize(20)
+  doc.setFontSize(16 * scale)
   doc.setTextColor(...HEADER_SALMON)
-  doc.text('Travel Itinerary', pageWidth / 2, 14, { align: 'center' })
+  doc.text('Travel Itinerary', pageWidth / 2, 10 * scale, { align: 'center' })
 
-  doc.setFontSize(13)
+  doc.setFontSize(11 * scale)
   doc.setTextColor(255, 255, 255)
-  doc.text(tripName || 'Untitled trip', pageWidth / 2, 26, { align: 'center' })
+  doc.text(tripName || 'Untitled trip', pageWidth / 2, 20 * scale, { align: 'center' })
 
   doc.setTextColor(0, 0, 0)
-  return 44
+  return headerHeight + 4 * scale
 }
 
-function drawLabelRow(doc: jsPDF, y: number, label: string, value: string): number {
-  const labelWidth = 36
+function drawLabelRow(
+  doc: jsPDF,
+  y: number,
+  label: string,
+  value: string,
+  scale: number,
+): number {
+  const labelWidth = 32 * scale
   const valueWidth = CONTENT_WIDTH - labelWidth
+  const rowHeight = 7 * scale
 
   doc.setFillColor(...NAVY)
-  doc.rect(PAGE_MARGIN, y, labelWidth, 9, 'F')
+  doc.rect(PAGE_MARGIN, y, labelWidth, rowHeight, 'F')
 
   doc.setFillColor(...MAUVE)
-  doc.rect(PAGE_MARGIN + labelWidth, y, valueWidth, 9, 'F')
+  doc.rect(PAGE_MARGIN + labelWidth, y, valueWidth, rowHeight, 'F')
 
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(8)
+  doc.setFontSize(7 * scale)
   doc.setTextColor(255, 255, 255)
-  doc.text(label, PAGE_MARGIN + 2, y + 6)
+  doc.text(label, PAGE_MARGIN + 1.5, y + 4.8 * scale)
 
   doc.setFont('helvetica', 'normal')
-  doc.setFontSize(9)
+  doc.setFontSize(7.5 * scale)
   doc.setTextColor(0, 0, 0)
-  const lines = doc.splitTextToSize(value, valueWidth - 4)
-  doc.text(lines[0] ?? value, PAGE_MARGIN + labelWidth + 2, y + 6)
+  const lines = doc.splitTextToSize(value, valueWidth - 3)
+  doc.text(lines[0] ?? value, PAGE_MARGIN + labelWidth + 1.5, y + 4.8 * scale)
 
-  doc.setTextColor(0, 0, 0)
-  return y + 11
+  return y + rowHeight + 1.5 * scale
 }
 
 function drawTravelDetails(
@@ -107,17 +122,23 @@ function drawTravelDetails(
   destination: string,
   arrival: string,
   departure: string,
+  scale: number,
 ): number {
-  y = drawLabelRow(doc, y, 'DESTINATION:', destination)
-  y = drawLabelRow(doc, y, 'ARRIVAL:', arrival)
-  y = drawLabelRow(doc, y, 'DEPARTURE:', departure)
-  return y + 4
+  y = drawLabelRow(doc, y, 'DESTINATION:', destination, scale)
+  y = drawLabelRow(doc, y, 'ARRIVAL:', arrival, scale)
+  y = drawLabelRow(doc, y, 'DEPARTURE:', departure, scale)
+  return y + 2 * scale
 }
 
-function measureEntryHeight(doc: jsPDF, entry: ItineraryEntry, textWidth: number): number {
-  const text = `${entry.categoryLabel}: ${entry.name} — ${entry.details}`
+function measureEntryHeight(
+  doc: jsPDF,
+  entry: ItineraryEntry,
+  textWidth: number,
+  lineHeight: number,
+): number {
+  const text = `${entry.name} — ${entry.details}`
   const lines = doc.splitTextToSize(text, textWidth)
-  return Math.max(7, lines.length * 4.8 + 1.5)
+  return Math.max(lineHeight, lines.length * lineHeight + 0.5)
 }
 
 function drawActivityEntry(
@@ -126,189 +147,182 @@ function drawActivityEntry(
   y: number,
   width: number,
   entry: ItineraryEntry,
+  fontSize: number,
+  lineHeight: number,
+  iconSize: number,
 ): number {
-  const textX = x + ICON_SIZE + 2
-  const textWidth = width - ICON_SIZE - 4
-  const text = `${entry.categoryLabel}: ${entry.name} — ${entry.details}`
+  const textX = x + iconSize + 1.5
+  const textWidth = width - iconSize - 3
+  const text = `${entry.name} — ${entry.details}`
   const lines = doc.splitTextToSize(text, textWidth)
-  const blockHeight = Math.max(7, lines.length * 4.8 + 1.5)
+  const blockHeight = Math.max(lineHeight, lines.length * lineHeight + 0.5)
 
   const image = getEmojiImageDataUrl(entry.icon)
   if (image) {
-    doc.addImage(image, 'PNG', x, y + 0.5, ICON_SIZE, ICON_SIZE)
+    doc.addImage(image, 'PNG', x, y + 0.3, iconSize, iconSize)
   }
 
   doc.setFont('helvetica', 'normal')
-  doc.setFontSize(9)
+  doc.setFontSize(fontSize)
   doc.setTextColor(0, 0, 0)
-  doc.text(lines, textX, y + 4)
+  doc.text(lines, textX, y + lineHeight - 0.8)
 
   return blockHeight
 }
 
-function drawDaySection(
+function measureDateSectionHeight(
+  doc: jsPDF,
+  entries: ItineraryEntry[],
+  textWidth: number,
+  lineHeight: number,
+  padding: number,
+): number {
+  const entryHeights = entries.map((entry) =>
+    measureEntryHeight(doc, entry, textWidth, lineHeight),
+  )
+  const contentHeight = entryHeights.reduce((sum, height) => sum + height, 0) + padding * 2
+  return Math.max(14, contentHeight)
+}
+
+function drawDateSection(
   doc: jsPDF,
   y: number,
-  dayNumber: number,
-  shortDate: string,
+  sortKey: string,
   entries: ItineraryEntry[],
+  scale: number,
 ): number {
-  const rightX = PAGE_MARGIN + DAY_BOX_WIDTH + 2
-  const rightWidth = CONTENT_WIDTH - DAY_BOX_WIDTH - 2
-  const textWidth = rightWidth - ICON_SIZE - 6
+  const rightX = PAGE_MARGIN + DATE_BOX_WIDTH + 1.5
+  const rightWidth = CONTENT_WIDTH - DATE_BOX_WIDTH - 1.5
+  const fontSize = 7 * scale
+  const lineHeight = 3.6 * scale
+  const padding = 2.5 * scale
+  const iconSize = ICON_SIZE * scale
+  const textWidth = rightWidth - iconSize - 4
 
   doc.setFont('helvetica', 'normal')
-  doc.setFontSize(9)
+  doc.setFontSize(fontSize)
 
-  const entryHeights = entries.map((entry) => measureEntryHeight(doc, entry, textWidth))
-  const contentHeight = entryHeights.reduce((sum, height) => sum + height, 0) + 8
-  const sectionHeight = Math.max(30, contentHeight)
-
-  y = ensurePageSpace(doc, y, sectionHeight + 8)
+  const sectionHeight = measureDateSectionHeight(
+    doc,
+    entries,
+    textWidth,
+    lineHeight,
+    padding,
+  )
 
   doc.setFillColor(...NAVY)
-  doc.rect(PAGE_MARGIN, y, DAY_BOX_WIDTH, sectionHeight, 'F')
+  doc.rect(PAGE_MARGIN, y, DATE_BOX_WIDTH, sectionHeight, 'F')
 
+  const dateLines = getDateColumnLines(sortKey)
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(7)
+  doc.setFontSize(7 * scale)
   doc.setTextColor(255, 255, 255)
-  doc.text('DAY', PAGE_MARGIN + DAY_BOX_WIDTH / 2, y + 7, { align: 'center' })
-
-  doc.setFontSize(16)
-  doc.text(String(dayNumber).padStart(2, '0'), PAGE_MARGIN + DAY_BOX_WIDTH / 2, y + 16, {
-    align: 'center',
-  })
-
-  doc.setFontSize(8)
-  doc.setFont('helvetica', 'normal')
-  doc.text(shortDate, PAGE_MARGIN + DAY_BOX_WIDTH / 2, y + sectionHeight - 5, { align: 'center' })
+  const dateBlockHeight = dateLines.length * 3.4 * scale
+  let dateY = y + (sectionHeight - dateBlockHeight) / 2 + 2.5 * scale
+  for (const line of dateLines) {
+    doc.text(line, PAGE_MARGIN + DATE_BOX_WIDTH / 2, dateY, { align: 'center' })
+    dateY += 3.4 * scale
+  }
 
   doc.setDrawColor(...MAUVE_DARK)
-  doc.setLineWidth(0.35)
+  doc.setLineWidth(0.25)
   doc.rect(rightX, y, rightWidth, sectionHeight)
 
-  let entryY = y + 5
-  for (let i = 0; i < entries.length; i += 1) {
-    const height = drawActivityEntry(doc, rightX + 3, entryY, rightWidth - 6, entries[i])
+  let entryY = y + padding
+  for (const entry of entries) {
+    const height = drawActivityEntry(
+      doc,
+      rightX + 2,
+      entryY,
+      rightWidth - 4,
+      entry,
+      fontSize,
+      lineHeight,
+      iconSize,
+    )
     entryY += height
   }
 
   doc.setTextColor(0, 0, 0)
-  return y + sectionHeight + 6
+  return y + sectionHeight + 2 * scale
 }
 
-function drawOtherPlansSection(doc: jsPDF, y: number, entries: ItineraryEntry[]): number {
-  const rightX = PAGE_MARGIN + DAY_BOX_WIDTH + 2
-  const rightWidth = CONTENT_WIDTH - DAY_BOX_WIDTH - 2
-  const textWidth = rightWidth - ICON_SIZE - 6
+function estimateTotalHeight(
+  doc: jsPDF,
+  tripName: string,
+  dayGroups: ItineraryDayGroup[],
+  scale: number,
+): number {
+  let y = drawHeader(doc, tripName, scale)
+  y = drawTravelDetails(doc, y, tripName, 'placeholder', 'placeholder', scale)
 
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(9)
-  const entryHeights = entries.map((entry) => measureEntryHeight(doc, entry, textWidth))
-  const contentHeight = entryHeights.reduce((sum, height) => sum + height, 0) + 8
-  const sectionHeight = Math.max(24, contentHeight)
-
-  y = ensurePageSpace(doc, y, sectionHeight + 16)
-
-  doc.setFillColor(...NAVY)
-  doc.rect(PAGE_MARGIN, y, DAY_BOX_WIDTH, sectionHeight, 'F')
-
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(6.5)
-  doc.setTextColor(255, 255, 255)
-  doc.text('OTHER', PAGE_MARGIN + DAY_BOX_WIDTH / 2, y + 8, { align: 'center' })
-  doc.text('PLANS', PAGE_MARGIN + DAY_BOX_WIDTH / 2, y + 12, { align: 'center' })
-
-  doc.setDrawColor(...MAUVE_DARK)
-  doc.setLineWidth(0.35)
-  doc.rect(rightX, y, rightWidth, sectionHeight)
-
-  let entryY = y + 5
-  for (let i = 0; i < entries.length; i += 1) {
-    const height = drawActivityEntry(doc, rightX + 3, entryY, rightWidth - 6, entries[i])
-    entryY += height
+  for (const group of dayGroups) {
+    const rightWidth = CONTENT_WIDTH - DATE_BOX_WIDTH - 1.5
+    const textWidth = rightWidth - ICON_SIZE * scale - 4
+    const lineHeight = 3.6 * scale
+    const padding = 2.5 * scale
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(7 * scale)
+    y +=
+      measureDateSectionHeight(doc, group.entries, textWidth, lineHeight, padding) +
+      2 * scale
   }
 
-  doc.setTextColor(0, 0, 0)
-  return y + sectionHeight + 8
+  return y + 6 * scale
 }
 
-function drawImportantInformation(doc: jsPDF, y: number, tripName: string, entryCount: number): number {
-  y = ensurePageSpace(doc, y, 40)
-
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(10)
-  doc.setTextColor(0, 0, 0)
-  doc.text('IMPORTANT INFORMATION', PAGE_MARGIN, y)
-  y += 5
-
-  const boxHeight = 34
-  doc.setFillColor(...MAUVE)
-  doc.rect(PAGE_MARGIN, y, CONTENT_WIDTH, boxHeight, 'F')
-
-  const bullets = [
-    `Keep a copy of this itinerary for ${tripName || 'your trip'} while traveling.`,
-    `This plan includes ${entryCount} selected booking${entryCount === 1 ? '' : 's'} from your Voyage planner.`,
-    'Confirm check-in times, terminals, and reservation details with providers before departure.',
-    'Save emergency contacts and travel insurance details with your trip documents.',
-  ]
-
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(8.5)
-  doc.setTextColor(0, 0, 0)
-
-  let bulletY = y + 6
-  for (const bullet of bullets) {
-    doc.text('•', PAGE_MARGIN + 3, bulletY)
-    const lines = doc.splitTextToSize(bullet, CONTENT_WIDTH - 10)
-    doc.text(lines, PAGE_MARGIN + 7, bulletY)
-    bulletY += lines.length * 4.2 + 1.5
+function chooseScale(tripName: string, dayGroups: ItineraryDayGroup[]): number {
+  for (const scale of [1, 0.92, 0.84, 0.76, 0.68]) {
+    const measureDoc = new jsPDF()
+    if (estimateTotalHeight(measureDoc, tripName, dayGroups, scale) <= PAGE_BOTTOM) {
+      return scale
+    }
   }
-
-  return y + boxHeight + 6
+  return 0.68
 }
 
 export function exportItineraryToPdf(data: ItineraryExportData): void {
   const entries = buildItineraryEntries(data)
   const dayGroups = groupItineraryByDate(entries)
   const tripDates = getTripDateRange(data)
-  const doc = new jsPDF()
 
   const tripName = data.tripName || 'Untitled trip'
-  let y = drawHeader(doc, tripName)
-
-  const destination = tripName
-  const arrival = tripDates ? formatDisplayDate(tripDates.arrival) : 'See day-by-day plan below'
-  const departure = tripDates ? formatDisplayDate(tripDates.departure) : 'See day-by-day plan below'
-  y = drawTravelDetails(doc, y, destination, arrival, departure)
 
   if (dayGroups.length === 0) {
-    y = ensurePageSpace(doc, y, 20)
+    const doc = new jsPDF()
+    let y = drawHeader(doc, tripName, 1)
+    y = drawTravelDetails(
+      doc,
+      y,
+      tripName,
+      tripDates ? formatDisplayDate(tripDates.arrival) : '—',
+      tripDates ? formatDisplayDate(tripDates.departure) : '—',
+      1,
+    )
     doc.setFont('helvetica', 'normal')
-    doc.setFontSize(10)
+    doc.setFontSize(9)
     doc.setTextColor(120, 120, 120)
-    doc.text('No selected items to include in this itinerary.', PAGE_MARGIN, y)
+    doc.text('No selected items to include in this itinerary.', PAGE_MARGIN, y + 4)
     doc.save(`${sanitizeFilename(tripName)}-itinerary.pdf`)
     return
   }
 
-  let dayNumber = 0
-  for (const group of dayGroups) {
-    if (group.sortKey === UNSCHEDULED_SORT_KEY) {
-      y = drawOtherPlansSection(doc, y, group.entries)
-      continue
-    }
+  const scale = chooseScale(tripName, dayGroups)
+  const doc = new jsPDF()
+  let y = drawHeader(doc, tripName, scale)
 
-    dayNumber += 1
-    y = drawDaySection(doc, y, dayNumber, formatShortDate(group.sortKey), group.entries)
+  const arrival = tripDates ? formatDisplayDate(tripDates.arrival) : 'See schedule below'
+  const departure = tripDates ? formatDisplayDate(tripDates.departure) : 'See schedule below'
+  y = drawTravelDetails(doc, y, tripName, arrival, departure, scale)
+
+  for (const group of dayGroups) {
+    y = drawDateSection(doc, y, group.sortKey, group.entries, scale)
   }
 
-  y = drawImportantInformation(doc, y, tripName, entries.length)
-
   doc.setFont('helvetica', 'normal')
-  doc.setFontSize(8)
+  doc.setFontSize(7 * scale)
   doc.setTextColor(120, 120, 120)
-  doc.text('Generated by Voyage', PAGE_MARGIN, doc.internal.pageSize.getHeight() - 8)
+  doc.text('Generated by Voyage', PAGE_MARGIN, PAGE_BOTTOM)
 
   doc.save(`${sanitizeFilename(tripName)}-itinerary.pdf`)
 }
